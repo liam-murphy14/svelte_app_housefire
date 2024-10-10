@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
       }
       whereParams[key] = value;
     });
-    const take = url.searchParams.has('take') ? parseInt(url.searchParams.get('take') ?? '10') : 10;
+    const take = url.searchParams.has('take') ? parseInt(url.searchParams.get('take') ?? '5') : 5;
     const skip = url.searchParams.has('skip') ? parseInt(url.searchParams.get('skip') ?? '0') : 0;
     const geocodeFindManyInput = GeocodeFindManyArgsSchema.parse({
       where: whereParams,
