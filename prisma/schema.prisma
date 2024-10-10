@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider = "zod-prisma-types"
+  output   = "../src/lib/utils/prismaGeneratedZod"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+model Reit {
+  id         String     @id @default(cuid())
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  ticker     String     @unique
+  properties Property[]
+}
+
+model Property {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  addressInput  String   @unique
+  name          String?
+  address       String?
+  address2      String?
+  neighborhood  String?
+  city          String?
+  state         String?
+  zip           String?
+  country       String?
+  latitude      Float?
+  longitude     Float?
+  squareFootage Float?
+  reit          Reit     @relation(fields: [reitTicker], references: [ticker])
+  reitTicker    String
+
+  @@index([reitTicker])
+}
+
+model Geocode {
+  id                       String   @id @default(cuid())
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  addressInput             String   @unique
+  streetNumber             String?
+  route                    String?
+  locality                 String?
+  administrativeAreaLevel1 String?
+  administrativeAreaLevel2 String?
+  country                  String?
+  postalCode               String?
+  formattedAddress         String?
+  globalPlusCode           String?
+  latitude                 Float
+  longitude                Float
+}
