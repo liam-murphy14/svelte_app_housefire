@@ -5,9 +5,9 @@ export const load: PageServerLoad = async () => {
   return {
     reitTickers: await getAllTickers(),
     metaTags: {
-      title: 'Home of the Hottest REIT Data',
+      title: 'REIT Property Data, Made Tangible',
       description:
-        'See fine-grained property data for your favorite REITs, updated monthly with more tickers added regularly.',
+        'Housefire is a growing catalog of REIT holdings, with property records, locations, and map-ready geocode data.',
     },
   };
 };
