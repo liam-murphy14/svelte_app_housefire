@@ -4,8 +4,6 @@
   import type { Pathname } from '$app/types';
 
   export let data: PageServerData;
-
-  const propertyHref = (ticker: string) => resolve(`/properties/${ticker}` as Pathname);
 </script>
 
 <main class="w-full overflow-hidden px-6 pb-16 text-hf-base-dark sm:px-10 lg:px-16">
@@ -127,7 +125,7 @@
       <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {#each data.reitTickers as ticker (ticker)}
           <a
-            href={propertyHref(ticker)}
+            href={resolve(`/properties/${ticker}` as Pathname)}
             class="group flex min-h-28 flex-col justify-between rounded-xl border border-hf-base-dark/20 bg-hf-base-light p-4 transition-colors duration-300 hover:border-hf-navy hover:bg-hf-blue/30 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hf-orange"
           >
             <span class="text-hf-base-dark hf-heading-5">{ticker}</span>
