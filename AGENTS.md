@@ -18,6 +18,7 @@ The deployment adapter is `@sveltejs/adapter-vercel`, so Vercel is the intended 
 
 - Read this file before changing application code, schema, build configuration, or generated output.
 - Preserve existing user changes in a dirty worktree. Check `git status --short` before editing and keep unrelated changes out of the patch.
+- Use subagent-driven development by default when executing implementation plans; use inline execution only for very small changes.
 - Keep server-only code under `src/lib/server` or server route files. Do not import Prisma, private environment variables, or other server-only modules into browser components.
 - Treat `prisma/schema.prisma` as the source of truth for database models. Do not hand-edit `src/lib/utils/prismaGeneratedZod/index.ts`; regenerate it after schema or generator changes.
 - Do not commit `.env`, `.env.*`, `.direnv`, build output, or generated SvelteKit output. `.env.example` documents the required private variables without containing credentials.
