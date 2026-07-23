@@ -1,11 +1,18 @@
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { env } from '$env/dynamic/private';
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  if (!env.DB_URL) {
+    throw new Error('DB_URL is not configured');
+  }
+
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString: env.DB_URL }),
+  });
 };
 
 declare global {
-  // eslint-disable-next-line
   var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 

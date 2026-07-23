@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { ReitCreateInputSchema } from '$lib/utils/prismaGeneratedZod';
 import { ZodError } from 'zod';
 import { createReit } from '$lib/server/db/reitQueries';
+import { formatZodError } from '$lib/server/validation';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -13,9 +14,8 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(reitCreatePrismaResponse);
   } catch (e) {
     if (e instanceof ZodError) {
-      const zodErrorMessages = e.errors.map((error) => error.message).join(', ');
       error(400, {
-        message: zodErrorMessages,
+        message: formatZodError(e),
       });
     }
     console.error('Error in POST /api/reits: ', e);

@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { createManyProperties } from '$lib/server/db/propertyQueries';
 import { PropertyCreateManyArgsSchema } from '$lib/utils/prismaGeneratedZod';
 import { ZodError } from 'zod';
+import { formatZodError } from '$lib/server/validation';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -13,9 +14,8 @@ export const POST: RequestHandler = async ({ request }) => {
     return json(propertiesCreatePrismaResponse);
   } catch (e) {
     if (e instanceof ZodError) {
-      const zodErrorMessages = e.errors.map((error) => error.message).join(', ');
       error(400, {
-        message: zodErrorMessages,
+        message: formatZodError(e),
       });
     }
     console.error('Error in POST /api/properties: ', e);

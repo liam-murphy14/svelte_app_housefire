@@ -8,7 +8,7 @@
   See fine-grained property data for your favorite REITs, updated monthly with more tickers added
   regularly.
   <ul class="mt-4">
-    {#each data.reitTickers as ticker}
+    {#each data.reitTickers as ticker (ticker)}
       <li>
         <Link href={`/properties/${ticker}`} text={ticker} />
       </li>

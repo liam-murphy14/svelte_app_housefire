@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Icon } from 'svelte-hero-icons';
+  import { Icon, type IconSource } from 'svelte-hero-icons';
   import { classNames } from '$lib/utils/classNames.utils';
 
-  export let src: any = '';
+  export let src: IconSource;
   export let solid: boolean = false;
   export let mini: boolean = false;
-  export let theme: 'base' = 'base';
+  export let theme = 'base' as const;
   export let size: 'sm' | 'md' | 'lg' = 'md';
 </script>
 

@@ -21,4 +21,5 @@ node_modules
 **/.runtimeconfig.json
 **/npm-debug.log
 **/.vercel
+.superpowers
 .env*.local

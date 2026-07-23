@@ -8,6 +8,7 @@ await prisma.reit.create({
       createMany: {
         data: [
           {
+            addressInput: '123 Main St, Anytown, CA 90210',
             name: 'PLD Property 1',
             address: '123 Main St',
             address2: 'Suite 100',
@@ -21,6 +22,7 @@ await prisma.reit.create({
             squareFootage: 100000,
           },
           {
+            addressInput: '456 Elm St, Anytown, CA 90210',
             name: 'PLD Property 2',
             address: '456 Elm St',
             city: 'Anytown',

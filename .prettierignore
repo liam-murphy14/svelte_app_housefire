@@ -12,6 +12,7 @@ venv
 .direnv
 flake.lock
 flake.nix
+src/lib/utils/prismaGeneratedZod/index.ts
 
 # Ignore files for PNPM, NPM and YARN
 pnpm-lock.yaml

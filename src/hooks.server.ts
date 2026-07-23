@@ -1,5 +1,5 @@
 import { error, type Handle } from '@sveltejs/kit';
-import { SELF_API_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 // handler for api key validation on api routes
 export const handle: Handle = async ({ event, resolve }) => {
@@ -9,7 +9,13 @@ export const handle: Handle = async ({ event, resolve }) => {
         message: 'Unauthorized',
       });
     }
-    if (event.request.headers.get('x-api-key') !== SELF_API_KEY) {
+    if (!env.SELF_API_KEY) {
+      console.error('SELF_API_KEY is not configured');
+      error(500, {
+        message: 'API key is not configured',
+      });
+    }
+    if (event.request.headers.get('x-api-key') !== env.SELF_API_KEY) {
       error(403, {
         message: 'Forbidden',
       });

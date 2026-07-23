@@ -1,7 +1,8 @@
 <script lang="ts">
-  import '../app.postcss';
+  import '../app.css';
   import Seo from '$lib/components/Seo.svelte';
   import { page } from '$app/stores';
+  import { resolve } from '$app/paths';
 </script>
 
 <svelte:head>
@@ -19,7 +20,7 @@
 
 <div class="h-screen w-screen -z-50 bg-hf-base-light overflow-auto flex flex-col">
   <div class="sticky top-0 p-2 w-full border-b border-hf-grey bg-hf-base-light flex-shrink-0">
-    <a href="/"><img src="/hf-logo.svg" alt="Housefire Logo" /> </a>
+    <a href={resolve('/')}><img src="/hf-logo.svg" alt="Housefire Logo" /> </a>
   </div>
   <div class="overflow-auto">
     <slot />

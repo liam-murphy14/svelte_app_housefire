@@ -2,13 +2,13 @@
   import { ChevronUpDown, ChevronUp, ChevronDown } from 'svelte-hero-icons';
   import Icon from './Icon.svelte';
 
-  // TODO: better type system here
+  type TableRow = Record<string, unknown>;
+
   export let idKey: string;
   export let tableHeaders: { [key: string]: string } = {};
-  export let tableData: { [key: string]: any }[] = [];
-  export let sortFunctions: { [key: string]: <T>(a: T, b: T) => number } = {};
-  // TODO: potentially expand this to cell on click
-  export let rowOnClick: (row: any) => void = () => {};
+  export let tableData: TableRow[] = [];
+  export let sortFunctions: { [key: string]: (a: unknown, b: unknown) => number } = {};
+  export let rowOnClick: (row: TableRow) => void = () => {};
 
   let sortKey: string = '';
   let sortDirection: 'asc' | 'desc' = 'asc';
@@ -33,9 +33,16 @@
       // try to sort natively
       try {
         return tableData.sort((a, b) => {
-          if (a[sortKey] < b[sortKey]) return sortDirection === 'asc' ? -1 : 1;
-          if (a[sortKey] > b[sortKey]) return sortDirection === 'asc' ? 1 : -1;
-          return 0;
+          const left = a[sortKey];
+          const right = b[sortKey];
+          if (left === right) return 0;
+          if (left === undefined || left === null) return sortDirection === 'asc' ? -1 : 1;
+          if (right === undefined || right === null) return sortDirection === 'asc' ? 1 : -1;
+          const result =
+            typeof left === 'number' && typeof right === 'number'
+              ? left - right
+              : String(left).localeCompare(String(right));
+          return sortDirection === 'asc' ? result : -result;
         });
       } catch (e) {
         console.error(e);
@@ -57,28 +64,30 @@
 
 <table class="overflow-scroll border border-hf-grey rounded-lg">
   <thead>
-    {#each keys as key (key)}
-      <th
-        class="border border-hf-grey bg-hf-grey/30 p-2 cursor-pointer"
-        on:click={() => onTableHeaderClick(key)}
-      >
-        <div class="flex items-center justify-center gap-2 h-full w-full">
-          <div class="hf-body-1-x text-hf-base-dark">
-            {tableHeaders[key]}
+    <tr>
+      {#each keys as key (key)}
+        <th
+          class="border border-hf-grey bg-hf-grey/30 p-2 cursor-pointer"
+          on:click={() => onTableHeaderClick(key)}
+        >
+          <div class="flex items-center justify-center gap-2 h-full w-full">
+            <div class="hf-body-1-x text-hf-base-dark">
+              {tableHeaders[key]}
+            </div>
+            <Icon
+              src={sortKey === key
+                ? sortDirection === 'asc'
+                  ? ChevronUp
+                  : ChevronDown
+                : ChevronUpDown}
+              mini
+              theme="base"
+              size="md"
+            />
           </div>
-          <Icon
-            src={sortKey === key
-              ? sortDirection === 'asc'
-                ? ChevronUp
-                : ChevronDown
-              : ChevronUpDown}
-            mini
-            theme="base"
-            size="md"
-          />
-        </div>
-      </th>
-    {/each}
+        </th>
+      {/each}
+    </tr>
   </thead>
   <tbody>
     {#each tableData as row (row[idKey])}
