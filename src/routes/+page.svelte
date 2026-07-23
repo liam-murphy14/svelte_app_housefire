@@ -11,7 +11,7 @@
     class="mx-auto grid max-w-6xl gap-12 pb-20 pt-16 lg:grid-cols-2 lg:items-center lg:gap-20 lg:pb-28 lg:pt-24"
   >
     <div>
-      <p class="hf-caption-x uppercase tracking-[0.28em] text-hf-navy">
+      <p class="hf-caption-x uppercase tracking-[0.28em] text-hf-orange">
         Housefire / REIT property data
       </p>
       <h1 class="mt-5 max-w-3xl text-hf-base-dark hf-heading-2">
@@ -23,7 +23,7 @@
       </p>
       <a
         href="#catalog"
-        class="mt-9 inline-flex items-center gap-3 rounded-full bg-hf-base-dark px-5 py-3 text-hf-base-light hf-body-1-x transition-colors duration-300 hover:bg-hf-navy focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hf-orange"
+        class="mt-9 inline-flex items-center gap-3 rounded-full bg-hf-base-dark px-5 py-3 text-hf-base-light hf-body-1-x transition-colors duration-300 hover:bg-hf-navy focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hf-navy"
       >
         Browse the catalog
         <span aria-hidden="true" class="text-hf-orange">↘</span>
@@ -118,7 +118,6 @@
           Choose a REIT to explore its properties on a map and in a sortable table.
         </p>
       </div>
-      <p class="hf-caption text-hf-base-dark/60">Updated monthly / growing regularly</p>
     </div>
 
     {#if data.reitTickers.length > 0}
@@ -126,7 +125,7 @@
         {#each data.reitTickers as ticker (ticker)}
           <a
             href={resolve(`/properties/${ticker}` as Pathname)}
-            class="group flex min-h-28 flex-col justify-between rounded-xl border border-hf-base-dark/20 bg-hf-base-light p-4 transition-colors duration-300 hover:border-hf-navy hover:bg-hf-blue/30 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hf-orange"
+            class="group flex min-h-28 flex-col justify-between rounded-xl border border-hf-base-dark/20 bg-hf-base-light p-4 transition-colors duration-300 hover:border-hf-navy hover:bg-hf-blue/30 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hf-navy"
           >
             <span class="text-hf-base-dark hf-heading-5">{ticker}</span>
             <span class="flex items-center justify-between gap-3 text-hf-navy hf-caption-x">
@@ -163,7 +162,10 @@
       Read the portfolio differently
     </p>
     <div class="mt-5 flex flex-col justify-between gap-8 md:flex-row md:items-end">
-      <h2 id="closing-title" class="max-w-2xl hf-heading-4">A clearer way to read a portfolio.</h2>
+      <div class="max-w-2xl">
+        <h2 id="closing-title" class="hf-heading-4">A clearer way to read a portfolio.</h2>
+        <p class="mt-3 hf-caption text-hf-base-light/70">Updated monthly / growing regularly</p>
+      </div>
       <a
         href="#catalog"
         class="inline-flex shrink-0 items-center gap-3 text-hf-orange hf-body-1-x underline decoration-hf-orange/50 underline-offset-4 transition-colors duration-300 hover:text-hf-base-light hover:decoration-hf-base-light focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hf-orange"
