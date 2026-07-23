@@ -16,4 +16,11 @@ test('index page explains Housefire and exposes the catalog entry point', async 
     'href',
     '#catalog',
   );
+  const closingSection = page.locator('#closing');
+  await expect(
+    closingSection.getByText('Updated monthly / growing regularly', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    closingSection.getByRole('link', { name: 'Browse available tickers' }),
+  ).toBeVisible();
 });

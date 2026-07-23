@@ -11,7 +11,9 @@
     class="mx-auto grid max-w-6xl gap-12 pb-20 pt-16 lg:grid-cols-2 lg:items-center lg:gap-20 lg:pb-28 lg:pt-24"
   >
     <div>
-      <p class="hf-caption-x uppercase tracking-[0.28em] text-hf-orange">
+      <p
+        class="inline-flex rounded-md bg-hf-base-dark px-3 py-2 hf-caption-x uppercase tracking-[0.28em] text-hf-orange"
+      >
         Housefire / REIT property data
       </p>
       <h1 class="mt-5 max-w-3xl text-hf-base-dark hf-heading-2">
@@ -155,6 +157,7 @@
   </section>
 
   <section
+    id="closing"
     class="mx-auto max-w-6xl border-y border-hf-base-dark bg-hf-base-dark px-6 py-12 text-hf-base-light sm:px-10 sm:py-16"
     aria-labelledby="closing-title"
   >
