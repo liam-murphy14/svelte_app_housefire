@@ -62,45 +62,56 @@
   const keys = Object.keys(tableHeaders);
 </script>
 
-<table class="overflow-scroll border border-hf-grey rounded-lg">
-  <thead>
-    <tr>
-      {#each keys as key (key)}
-        <th
-          class="border border-hf-grey bg-hf-grey/30 p-2 cursor-pointer"
-          on:click={() => onTableHeaderClick(key)}
-        >
-          <div class="flex items-center justify-center gap-2 h-full w-full">
-            <div class="hf-body-1-x text-hf-base-dark">
-              {tableHeaders[key]}
-            </div>
-            <Icon
-              src={sortKey === key
-                ? sortDirection === 'asc'
-                  ? ChevronUp
-                  : ChevronDown
-                : ChevronUpDown}
-              mini
-              theme="base"
-              size="md"
-            />
-          </div>
-        </th>
-      {/each}
-    </tr>
-  </thead>
-  <tbody>
-    {#each tableData as row (row[idKey])}
-      <tr
-        class="border border-hf-grey hover:bg-hf-blue/30 transition-colors duration-300 ease-out cursor-pointer"
-        on:click={() => rowOnClick(row)}
-      >
+<div class="w-full overflow-x-auto rounded-xl border border-hf-base-dark/20 bg-hf-base-light">
+  <table class="min-w-full border-collapse">
+    <thead>
+      <tr>
         {#each keys as key (key)}
-          <td class="border border-hf-grey p-2 hf-body-2 text-hf-base-dark">
-            {row[key]}
-          </td>
+          <th
+            scope="col"
+            aria-sort={sortKey === key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+            class="bg-hf-navy"
+          >
+            <button
+              type="button"
+              class="group flex min-h-10 w-full items-center justify-between gap-3 rounded-md px-2 py-1 text-left text-hf-base-light focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-orange"
+              aria-label={sortKey === key
+                ? `${tableHeaders[key]}, sorted ${sortDirection === 'asc' ? 'ascending' : 'descending'}`
+                : `Sort by ${tableHeaders[key]}`}
+              on:click={() => onTableHeaderClick(key)}
+            >
+              <span class="hf-body-1-x">{tableHeaders[key]}</span>
+              <Icon
+                src={sortKey === key ? (sortDirection === 'asc' ? ChevronUp : ChevronDown) : ChevronUpDown}
+                mini
+                theme="light"
+                size="md"
+              />
+            </button>
+          </th>
         {/each}
       </tr>
-    {/each}
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      {#each tableData as row (row[idKey])}
+        <tr
+          tabindex="0"
+          class="cursor-pointer border-b border-hf-base-dark/20 transition-colors duration-300 ease-out hover:bg-hf-blue/30 focus-visible:bg-hf-blue/30 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-hf-orange"
+          on:click={() => rowOnClick(row)}
+          on:keydown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              rowOnClick(row);
+            }
+          }}
+        >
+          {#each keys as key (key)}
+            <td class="px-4 py-3 hf-body-2 text-hf-base-dark">
+              {row[key]}
+            </td>
+          {/each}
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+</div>
