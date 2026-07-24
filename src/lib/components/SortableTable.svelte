@@ -69,7 +69,11 @@
         {#each keys as key (key)}
           <th
             scope="col"
-            aria-sort={sortKey === key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+            aria-sort={sortKey === key
+              ? sortDirection === 'asc'
+                ? 'ascending'
+                : 'descending'
+              : 'none'}
             class="bg-hf-navy"
           >
             <button
@@ -82,7 +86,11 @@
             >
               <span class="hf-body-1-x">{tableHeaders[key]}</span>
               <Icon
-                src={sortKey === key ? (sortDirection === 'asc' ? ChevronUp : ChevronDown) : ChevronUpDown}
+                src={sortKey === key
+                  ? sortDirection === 'asc'
+                    ? ChevronUp
+                    : ChevronDown
+                  : ChevronUpDown}
                 mini
                 theme="light"
                 size="md"
