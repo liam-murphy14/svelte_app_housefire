@@ -35,6 +35,10 @@
     property.marker.openPopup();
   };
 
+  const focusPropertyLabel = (tableRowData: Record<string, unknown>) => {
+    return `Focus ${displayPropertyValue(tableRowData.name as string | null | undefined)} on map`;
+  };
+
   onMount(async () => {
     try {
       // import leaflet onMount since it is client only
@@ -73,7 +77,7 @@
       </p>
       <h1 class="mt-3 hf-heading-3">{data.ticker} Properties</h1>
       <p class="mt-3 max-w-2xl text-hf-base-dark/70 hf-body-1">
-        Explore the holdings on a map and sort the underlying property records.
+        Browse the property records for this portfolio.
       </p>
     </header>
 
@@ -90,7 +94,7 @@
         <p class="hf-caption-x uppercase tracking-[0.2em] text-hf-navy">02 / Records</p>
         <div class="mt-2 flex items-end justify-between gap-4">
           <h2 id="table-title" class="hf-heading-5">Property records</h2>
-          <p class="hf-caption text-hf-base-dark/60">Select a row to focus the map</p>
+          <p class="hf-caption text-hf-base-dark/60">Select a property name to focus the map</p>
         </div>
         <div class="mt-3">
           <SortableTable
@@ -104,6 +108,7 @@
             }}
             tableData={joinedPropertyData}
             rowOnClick={focusProperty}
+            rowActionLabel={focusPropertyLabel}
           />
         </div>
       </section>

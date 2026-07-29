@@ -9,6 +9,7 @@
   export let tableData: TableRow[] = [];
   export let sortFunctions: { [key: string]: (a: unknown, b: unknown) => number } = {};
   export let rowOnClick: (row: TableRow) => void = () => {};
+  export let rowActionLabel: ((row: TableRow) => string) | undefined = undefined;
 
   let sortKey: string = '';
   let sortDirection: 'asc' | 'desc' = 'asc';
@@ -103,19 +104,23 @@
     <tbody>
       {#each tableData as row (row[idKey])}
         <tr
-          tabindex="0"
-          class="cursor-pointer border-b border-hf-base-dark/20 transition-colors duration-300 ease-out hover:bg-hf-blue/30 focus-visible:bg-hf-blue/30 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-hf-orange"
+          class="cursor-pointer border-b border-hf-base-dark/20 odd:bg-hf-base-light even:bg-hf-blue/20 transition-colors duration-300 ease-out hover:bg-hf-blue/40"
           on:click={() => rowOnClick(row)}
-          on:keydown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              rowOnClick(row);
-            }
-          }}
         >
-          {#each keys as key (key)}
+          {#each keys as key, index (key)}
             <td class="px-4 py-3 hf-body-2 text-hf-base-dark">
-              {row[key]}
+              {#if index === 0 && rowActionLabel}
+                <button
+                  type="button"
+                  class="rounded-sm text-left focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-navy"
+                  aria-label={rowActionLabel(row)}
+                  on:click|stopPropagation={() => rowOnClick(row)}
+                >
+                  {row[key]}
+                </button>
+              {:else}
+                {row[key]}
+              {/if}
             </td>
           {/each}
         </tr>
