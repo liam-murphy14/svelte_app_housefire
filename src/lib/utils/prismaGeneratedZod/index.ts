@@ -1,9 +1,53 @@
 import { z } from 'zod';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 /////////////////////////////////////////
 // HELPER FUNCTIONS
 /////////////////////////////////////////
+
+// JSON
+//------------------------------------------------------
+
+export type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
+
+export const transformJsonNull = (v?: NullableJsonInput) => {
+  if (!v || v === 'DbNull') return Prisma.NullTypes.DbNull;
+  if (v === 'JsonNull') return Prisma.NullTypes.JsonNull;
+  return v;
+};
+
+export const JsonValueSchema: z.ZodType<Prisma.JsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.literal(null),
+    z.record(z.string(), z.lazy(() => JsonValueSchema.optional())),
+    z.array(z.lazy(() => JsonValueSchema)),
+  ])
+);
+
+export type JsonValueType = z.infer<typeof JsonValueSchema>;
+
+export const NullableJsonValue = z
+  .union([JsonValueSchema, z.literal('DbNull'), z.literal('JsonNull')])
+  .nullable()
+  .transform((v) => transformJsonNull(v));
+
+export type NullableJsonValueType = z.infer<typeof NullableJsonValue>;
+
+export const InputJsonValueSchema: z.ZodType<Prisma.InputJsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.object({ toJSON: z.any() }),
+    z.record(z.string(), z.lazy(() => z.union([InputJsonValueSchema, z.literal(null)]))),
+    z.array(z.lazy(() => z.union([InputJsonValueSchema, z.literal(null)]))),
+  ])
+);
+
+export type InputJsonValueType = z.infer<typeof InputJsonValueSchema>;
 
 
 /////////////////////////////////////////
@@ -14,13 +58,17 @@ export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCo
 
 export const ReitScalarFieldEnumSchema = z.enum(['id','createdAt','updatedAt','ticker']);
 
-export const PropertyScalarFieldEnumSchema = z.enum(['id','createdAt','updatedAt','addressInput','name','address','address2','neighborhood','city','state','zip','country','latitude','longitude','squareFootage','reitTicker']);
+export const PropertyScalarFieldEnumSchema = z.enum(['id','createdAt','updatedAt','addressInput','name','address','address2','neighborhood','city','state','zip','country','latitude','longitude','squareFootage','facts','reitTicker']);
 
 export const GeocodeScalarFieldEnumSchema = z.enum(['id','createdAt','updatedAt','addressInput','streetNumber','route','locality','administrativeAreaLevel1','administrativeAreaLevel2','country','postalCode','formattedAddress','globalPlusCode','latitude','longitude']);
 
 export const SortOrderSchema = z.enum(['asc','desc']);
 
+export const JsonNullValueInputSchema: z.ZodType<Prisma.JsonNullValueInput> = z.enum(['JsonNull',]).transform((value) => (value === 'JsonNull' ? Prisma.JsonNull : value));
+
 export const QueryModeSchema = z.enum(['default','insensitive']);
+
+export const JsonNullValueFilterSchema: z.ZodType<Prisma.JsonNullValueFilter> = z.enum(['DbNull','JsonNull','AnyNull',]).transform((value) => value === 'JsonNull' ? Prisma.JsonNull : value === 'DbNull' ? Prisma.DbNull : value === 'AnyNull' ? Prisma.AnyNull : value);
 
 export const NullsOrderSchema = z.enum(['first','last']);
 /////////////////////////////////////////
@@ -60,6 +108,7 @@ export const PropertySchema = z.object({
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
   squareFootage: z.number().nullable(),
+  facts: JsonValueSchema,
   reitTicker: z.string(),
 })
 
@@ -151,6 +200,7 @@ export const PropertySelectSchema: z.ZodType<Prisma.PropertySelect> = z.object({
   latitude: z.boolean().optional(),
   longitude: z.boolean().optional(),
   squareFootage: z.boolean().optional(),
+  facts: z.boolean().optional(),
   reitTicker: z.boolean().optional(),
   reit: z.union([z.boolean(),z.lazy(() => ReitArgsSchema)]).optional(),
 }).strict()
@@ -262,6 +312,7 @@ export const PropertyWhereInputSchema: z.ZodType<Prisma.PropertyWhereInput> = z.
   latitude: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
   longitude: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
   squareFootage: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
+  facts: z.lazy(() => JsonFilterSchema).optional(),
   reitTicker: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
   reit: z.union([ z.lazy(() => ReitScalarRelationFilterSchema), z.lazy(() => ReitWhereInputSchema) ]).optional(),
 });
@@ -282,6 +333,7 @@ export const PropertyOrderByWithRelationInputSchema: z.ZodType<Prisma.PropertyOr
   latitude: z.union([ z.lazy(() => SortOrderSchema), z.lazy(() => SortOrderInputSchema) ]).optional(),
   longitude: z.union([ z.lazy(() => SortOrderSchema), z.lazy(() => SortOrderInputSchema) ]).optional(),
   squareFootage: z.union([ z.lazy(() => SortOrderSchema), z.lazy(() => SortOrderInputSchema) ]).optional(),
+  facts: z.lazy(() => SortOrderSchema).optional(),
   reitTicker: z.lazy(() => SortOrderSchema).optional(),
   reit: z.lazy(() => ReitOrderByWithRelationInputSchema).optional(),
 });
@@ -317,6 +369,7 @@ export const PropertyWhereUniqueInputSchema: z.ZodType<Prisma.PropertyWhereUniqu
   latitude: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
   longitude: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
   squareFootage: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
+  facts: z.lazy(() => JsonFilterSchema).optional(),
   reitTicker: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
   reit: z.union([ z.lazy(() => ReitScalarRelationFilterSchema), z.lazy(() => ReitWhereInputSchema) ]).optional(),
 }));
@@ -337,6 +390,7 @@ export const PropertyOrderByWithAggregationInputSchema: z.ZodType<Prisma.Propert
   latitude: z.union([ z.lazy(() => SortOrderSchema), z.lazy(() => SortOrderInputSchema) ]).optional(),
   longitude: z.union([ z.lazy(() => SortOrderSchema), z.lazy(() => SortOrderInputSchema) ]).optional(),
   squareFootage: z.union([ z.lazy(() => SortOrderSchema), z.lazy(() => SortOrderInputSchema) ]).optional(),
+  facts: z.lazy(() => SortOrderSchema).optional(),
   reitTicker: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => PropertyCountOrderByAggregateInputSchema).optional(),
   _avg: z.lazy(() => PropertyAvgOrderByAggregateInputSchema).optional(),
@@ -364,6 +418,7 @@ export const PropertyScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Prop
   latitude: z.union([ z.lazy(() => FloatNullableWithAggregatesFilterSchema), z.number() ]).optional().nullable(),
   longitude: z.union([ z.lazy(() => FloatNullableWithAggregatesFilterSchema), z.number() ]).optional().nullable(),
   squareFootage: z.union([ z.lazy(() => FloatNullableWithAggregatesFilterSchema), z.number() ]).optional().nullable(),
+  facts: z.lazy(() => JsonWithAggregatesFilterSchema).optional(),
   reitTicker: z.union([ z.lazy(() => StringWithAggregatesFilterSchema), z.string() ]).optional(),
 });
 
@@ -552,6 +607,7 @@ export const PropertyCreateInputSchema: z.ZodType<Prisma.PropertyCreateInput> = 
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   squareFootage: z.number().optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
   reit: z.lazy(() => ReitCreateNestedOneWithoutPropertiesInputSchema),
 });
 
@@ -571,6 +627,7 @@ export const PropertyUncheckedCreateInputSchema: z.ZodType<Prisma.PropertyUnchec
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   squareFootage: z.number().optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
   reitTicker: z.string(),
 });
 
@@ -590,6 +647,7 @@ export const PropertyUpdateInputSchema: z.ZodType<Prisma.PropertyUpdateInput> = 
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
   reit: z.lazy(() => ReitUpdateOneRequiredWithoutPropertiesNestedInputSchema).optional(),
 });
 
@@ -609,6 +667,7 @@ export const PropertyUncheckedUpdateInputSchema: z.ZodType<Prisma.PropertyUnchec
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
   reitTicker: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 });
 
@@ -628,6 +687,7 @@ export const PropertyCreateManyInputSchema: z.ZodType<Prisma.PropertyCreateManyI
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   squareFootage: z.number().optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
   reitTicker: z.string(),
 });
 
@@ -647,6 +707,7 @@ export const PropertyUpdateManyMutationInputSchema: z.ZodType<Prisma.PropertyUpd
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 export const PropertyUncheckedUpdateManyInputSchema: z.ZodType<Prisma.PropertyUncheckedUpdateManyInput> = z.strictObject({
@@ -665,6 +726,7 @@ export const PropertyUncheckedUpdateManyInputSchema: z.ZodType<Prisma.PropertyUn
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
   reitTicker: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 });
 
@@ -909,6 +971,23 @@ export const FloatNullableFilterSchema: z.ZodType<Prisma.FloatNullableFilter> = 
   not: z.union([ z.number(),z.lazy(() => NestedFloatNullableFilterSchema) ]).optional().nullable(),
 });
 
+export const JsonFilterSchema: z.ZodType<Prisma.JsonFilter> = z.strictObject({
+  equals: InputJsonValueSchema.optional(),
+  path: z.string().array().optional(),
+  mode: z.lazy(() => QueryModeSchema).optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_starts_with: InputJsonValueSchema.optional().nullable(),
+  array_ends_with: InputJsonValueSchema.optional().nullable(),
+  array_contains: InputJsonValueSchema.optional().nullable(),
+  lt: InputJsonValueSchema.optional(),
+  lte: InputJsonValueSchema.optional(),
+  gt: InputJsonValueSchema.optional(),
+  gte: InputJsonValueSchema.optional(),
+  not: InputJsonValueSchema.optional(),
+});
+
 export const ReitScalarRelationFilterSchema: z.ZodType<Prisma.ReitScalarRelationFilter> = z.strictObject({
   is: z.lazy(() => ReitWhereInputSchema).optional(),
   isNot: z.lazy(() => ReitWhereInputSchema).optional(),
@@ -935,6 +1014,7 @@ export const PropertyCountOrderByAggregateInputSchema: z.ZodType<Prisma.Property
   latitude: z.lazy(() => SortOrderSchema).optional(),
   longitude: z.lazy(() => SortOrderSchema).optional(),
   squareFootage: z.lazy(() => SortOrderSchema).optional(),
+  facts: z.lazy(() => SortOrderSchema).optional(),
   reitTicker: z.lazy(() => SortOrderSchema).optional(),
 });
 
@@ -1020,6 +1100,26 @@ export const FloatNullableWithAggregatesFilterSchema: z.ZodType<Prisma.FloatNull
   _sum: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
   _min: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
   _max: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
+});
+
+export const JsonWithAggregatesFilterSchema: z.ZodType<Prisma.JsonWithAggregatesFilter> = z.strictObject({
+  equals: InputJsonValueSchema.optional(),
+  path: z.string().array().optional(),
+  mode: z.lazy(() => QueryModeSchema).optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_starts_with: InputJsonValueSchema.optional().nullable(),
+  array_ends_with: InputJsonValueSchema.optional().nullable(),
+  array_contains: InputJsonValueSchema.optional().nullable(),
+  lt: InputJsonValueSchema.optional(),
+  lte: InputJsonValueSchema.optional(),
+  gt: InputJsonValueSchema.optional(),
+  gte: InputJsonValueSchema.optional(),
+  not: InputJsonValueSchema.optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedJsonFilterSchema).optional(),
+  _max: z.lazy(() => NestedJsonFilterSchema).optional(),
 });
 
 export const FloatFilterSchema: z.ZodType<Prisma.FloatFilter> = z.strictObject({
@@ -1333,6 +1433,23 @@ export const NestedFloatNullableWithAggregatesFilterSchema: z.ZodType<Prisma.Nes
   _max: z.lazy(() => NestedFloatNullableFilterSchema).optional(),
 });
 
+export const NestedJsonFilterSchema: z.ZodType<Prisma.NestedJsonFilter> = z.strictObject({
+  equals: InputJsonValueSchema.optional(),
+  path: z.string().array().optional(),
+  mode: z.lazy(() => QueryModeSchema).optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_starts_with: InputJsonValueSchema.optional().nullable(),
+  array_ends_with: InputJsonValueSchema.optional().nullable(),
+  array_contains: InputJsonValueSchema.optional().nullable(),
+  lt: InputJsonValueSchema.optional(),
+  lte: InputJsonValueSchema.optional(),
+  gt: InputJsonValueSchema.optional(),
+  gte: InputJsonValueSchema.optional(),
+  not: InputJsonValueSchema.optional(),
+});
+
 export const NestedFloatFilterSchema: z.ZodType<Prisma.NestedFloatFilter> = z.strictObject({
   equals: z.number().optional(),
   in: z.number().array().optional(),
@@ -1376,6 +1493,7 @@ export const PropertyCreateWithoutReitInputSchema: z.ZodType<Prisma.PropertyCrea
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   squareFootage: z.number().optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 export const PropertyUncheckedCreateWithoutReitInputSchema: z.ZodType<Prisma.PropertyUncheckedCreateWithoutReitInput> = z.strictObject({
@@ -1394,6 +1512,7 @@ export const PropertyUncheckedCreateWithoutReitInputSchema: z.ZodType<Prisma.Pro
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   squareFootage: z.number().optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 export const PropertyCreateOrConnectWithoutReitInputSchema: z.ZodType<Prisma.PropertyCreateOrConnectWithoutReitInput> = z.strictObject({
@@ -1441,6 +1560,7 @@ export const PropertyScalarWhereInputSchema: z.ZodType<Prisma.PropertyScalarWher
   latitude: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
   longitude: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
   squareFootage: z.union([ z.lazy(() => FloatNullableFilterSchema), z.number() ]).optional().nullable(),
+  facts: z.lazy(() => JsonFilterSchema).optional(),
   reitTicker: z.union([ z.lazy(() => StringFilterSchema), z.string() ]).optional(),
 });
 
@@ -1504,6 +1624,7 @@ export const PropertyCreateManyReitInputSchema: z.ZodType<Prisma.PropertyCreateM
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
   squareFootage: z.number().optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 export const PropertyUpdateWithoutReitInputSchema: z.ZodType<Prisma.PropertyUpdateWithoutReitInput> = z.strictObject({
@@ -1522,6 +1643,7 @@ export const PropertyUpdateWithoutReitInputSchema: z.ZodType<Prisma.PropertyUpda
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 export const PropertyUncheckedUpdateWithoutReitInputSchema: z.ZodType<Prisma.PropertyUncheckedUpdateWithoutReitInput> = z.strictObject({
@@ -1540,6 +1662,7 @@ export const PropertyUncheckedUpdateWithoutReitInputSchema: z.ZodType<Prisma.Pro
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 export const PropertyUncheckedUpdateManyWithoutReitInputSchema: z.ZodType<Prisma.PropertyUncheckedUpdateManyWithoutReitInput> = z.strictObject({
@@ -1558,6 +1681,7 @@ export const PropertyUncheckedUpdateManyWithoutReitInputSchema: z.ZodType<Prisma
   latitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   longitude: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   squareFootage: z.union([ z.number(),z.lazy(() => NullableFloatFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  facts: z.union([ z.lazy(() => JsonNullValueInputSchema), InputJsonValueSchema ]).optional(),
 });
 
 /////////////////////////////////////////

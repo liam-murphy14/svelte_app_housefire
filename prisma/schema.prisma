@@ -35,6 +35,7 @@ model Property {
   latitude      Float?
   longitude     Float?
   squareFootage Float?
+  facts         Json    @default("[]")
   reit          Reit     @relation(fields: [reitTicker], references: [ticker])
   reitTicker    String
 
