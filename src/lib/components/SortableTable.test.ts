@@ -19,4 +19,20 @@ describe('SortableTable', () => {
     expect(body).not.toContain('tabindex="0"');
     expect(body).toContain('Warehouse');
   });
+
+  it('renders formatted row action text when the first cell is unnamed', () => {
+    const { body } = render(SortableTable, {
+      props: {
+        idKey: 'id',
+        tableHeaders: { name: 'Name' },
+        tableData: [{ id: 'property-1', name: null, addressInput: '  123 Market Street  ' }],
+        rowActionLabel: (row: Record<string, unknown>) =>
+          `Focus ${String(row.addressInput).trim()} on map`,
+        rowActionText: (row: Record<string, unknown>) => String(row.addressInput).trim(),
+      },
+    });
+
+    expect(body).toContain('aria-label="Focus 123 Market Street on map"');
+    expect(body).toContain('>123 Market Street</button>');
+  });
 });

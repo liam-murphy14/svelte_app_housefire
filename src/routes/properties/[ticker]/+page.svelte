@@ -35,8 +35,19 @@
     property.marker.openPopup();
   };
 
+  const propertyIdentifier = (tableRowData: Record<string, unknown>) => {
+    const name = typeof tableRowData.name === 'string' ? tableRowData.name.trim() : '';
+    if (name) return name;
+
+    const addressInput =
+      typeof tableRowData.addressInput === 'string' ? tableRowData.addressInput.trim() : '';
+    if (addressInput) return addressInput;
+
+    return String(tableRowData.id);
+  };
+
   const focusPropertyLabel = (tableRowData: Record<string, unknown>) => {
-    return `Focus ${displayPropertyValue(tableRowData.name as string | null | undefined)} on map`;
+    return `Focus ${propertyIdentifier(tableRowData)} on map`;
   };
 
   onMount(async () => {
@@ -109,6 +120,7 @@
             tableData={joinedPropertyData}
             rowOnClick={focusProperty}
             rowActionLabel={focusPropertyLabel}
+            rowActionText={propertyIdentifier}
           />
         </div>
       </section>

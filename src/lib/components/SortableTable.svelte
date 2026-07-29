@@ -10,6 +10,7 @@
   export let sortFunctions: { [key: string]: (a: unknown, b: unknown) => number } = {};
   export let rowOnClick: (row: TableRow) => void = () => {};
   export let rowActionLabel: ((row: TableRow) => string) | undefined = undefined;
+  export let rowActionText: ((row: TableRow) => string) | undefined = undefined;
 
   let sortKey: string = '';
   let sortDirection: 'asc' | 'desc' = 'asc';
@@ -116,7 +117,7 @@
                   aria-label={rowActionLabel(row)}
                   on:click|stopPropagation={() => rowOnClick(row)}
                 >
-                  {row[key]}
+                  {rowActionText ? rowActionText(row) : row[key]}
                 </button>
               {:else}
                 {row[key]}
