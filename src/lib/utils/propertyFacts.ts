@@ -7,4 +7,9 @@ export const PropertyFactSchema = z.strictObject({
 
 export const PropertyFactsSchema = z.array(PropertyFactSchema);
 
+export const parsePropertyFacts = (value: unknown): PropertyFact[] => {
+  const result = PropertyFactsSchema.safeParse(value);
+  return result.success ? result.data : [];
+};
+
 export type PropertyFact = z.infer<typeof PropertyFactSchema>;

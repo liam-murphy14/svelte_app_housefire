@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PropertyCreateManyInputSchema } from '$lib/utils/prismaGeneratedZod';
-import { PropertyFactsSchema } from './propertyFacts';
+import { parsePropertyFacts, PropertyFactsSchema } from './propertyFacts';
 
 const baseProperty = {
   addressInput: '100 Main Street, Anywhere, USA',
@@ -46,5 +46,22 @@ describe('PropertyFactsSchema', () => {
 
   it('allows existing property-create payloads to omit facts', () => {
     expect(PropertyCreateManyInputSchema.parse(baseProperty)).toEqual(baseProperty);
+  });
+});
+
+describe('parsePropertyFacts', () => {
+  it('returns valid facts in their original order', () => {
+    const facts = [
+      { label: 'Year built', value: '2022' },
+      { label: 'Lease term', value: '15 years' },
+    ];
+
+    expect(parsePropertyFacts(facts)).toEqual(facts);
+  });
+
+  it('returns an empty list for empty or malformed stored JSON', () => {
+    expect(parsePropertyFacts([])).toEqual([]);
+    expect(parsePropertyFacts([{ label: 'Year built' }])).toEqual([]);
+    expect(parsePropertyFacts({ label: 'Year built', value: '2022' })).toEqual([]);
   });
 });
