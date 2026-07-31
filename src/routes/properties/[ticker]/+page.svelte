@@ -6,6 +6,7 @@
   import type { Property } from '@prisma/client';
   import SortableTable from '$lib/components/SortableTable.svelte';
   import { displayPropertyValue } from '$lib/utils/propertyDisplay';
+  import { propertyDetailsPath, propertyPopupContent } from '$lib/utils/propertyMap';
 
   type PropertyWithMarker = {
     marker: Marker;
@@ -14,7 +15,7 @@
 
   let leaflet: typeof import('leaflet');
   let map: Map;
-  let joinedPropertyData: PropertyWithMarker[] = [];
+  let joinedPropertyData: Array<Property | PropertyWithMarker> = data.properties;
 
   // FUNCTIONS FOR LEAFLET
   const addPropertyMarker = (property: Property) => {
@@ -22,12 +23,14 @@
     const lat = property.latitude ?? 0;
     const lng = property.longitude ?? 0;
     const marker = leaflet.marker([lat, lng]).addTo(map);
-    marker.bindPopup(`<b>${property.name}</b><br>${property.address}`);
+    marker.bindPopup(propertyPopupContent(property, data.ticker));
     return marker;
   };
 
   const focusProperty = (tableRowData: Record<string, unknown>) => {
     const property = tableRowData as unknown as PropertyWithMarker;
+    if (!leaflet || !map || !property.marker) return;
+
     // TODO: add better error handling for missing lat/lng
     const lat = property.latitude ?? 0;
     const lng = property.longitude ?? 0;
@@ -46,9 +49,8 @@
     return String(tableRowData.id);
   };
 
-  const focusPropertyLabel = (tableRowData: Record<string, unknown>) => {
-    return `Focus ${propertyIdentifier(tableRowData)} on map`;
-  };
+  const propertyDetailsHref = (tableRowData: Record<string, unknown>) =>
+    propertyDetailsPath(data.ticker, String(tableRowData.id));
 
   onMount(async () => {
     try {
@@ -105,27 +107,29 @@
         <p class="hf-caption-x uppercase tracking-[0.2em] text-hf-navy">02 / Records</p>
         <div class="mt-2 flex items-end justify-between gap-4">
           <h2 id="table-title" class="hf-heading-5">Property records</h2>
-          <p class="hf-caption text-hf-base-dark/60">Select a property name to focus the map</p>
+          <p class="hf-caption text-hf-base-dark/60">
+            Open a property name for details, or select the rest of its row to focus the map
+          </p>
         </div>
         <div class="mt-3">
           <SortableTable
             idKey="id"
             tableHeaders={{
               name: 'Name',
-              address: 'Address',
               city: 'City',
               state: 'State',
-              squareFootage: 'Square Footage',
             }}
             tableData={joinedPropertyData}
             rowOnClick={focusProperty}
-            rowActionLabel={focusPropertyLabel}
+            rowActionLabel={(row) => `View ${propertyIdentifier(row)} property details`}
             rowActionText={propertyIdentifier}
+            rowActionHref={propertyDetailsHref}
           />
         </div>
       </section>
     </div>
 
+    <!-- Facts intentionally stay on the property detail page and are omitted from compact mobile cards for now. -->
     <section class="mt-8 lg:hidden" aria-labelledby="mobile-properties-title">
       <p class="hf-caption-x uppercase tracking-[0.2em] text-hf-navy">Property records</p>
       <h2 id="mobile-properties-title" class="mt-2 hf-heading-4">Holdings at a glance</h2>

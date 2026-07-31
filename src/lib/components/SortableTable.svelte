@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
+  import type { Pathname } from '$app/types';
   import { ChevronUpDown, ChevronUp, ChevronDown } from 'svelte-hero-icons';
   import Icon from './Icon.svelte';
 
@@ -11,6 +13,7 @@
   export let rowOnClick: (row: TableRow) => void = () => {};
   export let rowActionLabel: ((row: TableRow) => string) | undefined = undefined;
   export let rowActionText: ((row: TableRow) => string) | undefined = undefined;
+  export let rowActionHref: ((row: TableRow) => string) | undefined = undefined;
 
   let sortKey: string = '';
   let sortDirection: 'asc' | 'desc' = 'asc';
@@ -110,7 +113,16 @@
         >
           {#each keys as key, index (key)}
             <td class="px-4 py-3 hf-body-2 text-hf-base-dark">
-              {#if index === 0 && rowActionLabel}
+              {#if index === 0 && rowActionHref}
+                <a
+                  href={resolve(rowActionHref(row) as Pathname)}
+                  class="rounded-sm text-hf-navy underline decoration-2 underline-offset-4 hover:text-hf-orange focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-navy"
+                  aria-label={rowActionLabel ? rowActionLabel(row) : `Open ${tableHeaders[key]}`}
+                  on:click|stopPropagation={() => {}}
+                >
+                  {rowActionText ? rowActionText(row) : row[key]}
+                </a>
+              {:else if index === 0 && rowActionLabel}
                 <button
                   type="button"
                   class="rounded-sm text-left focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-navy"
