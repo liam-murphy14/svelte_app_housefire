@@ -35,6 +35,28 @@ describe('property detail page', () => {
     expect(body).toContain('href="/properties/PLD"');
   });
 
+  it('renders every fact when labels are duplicated', () => {
+    const { body } = render(Page, {
+      props: {
+        data: {
+          ticker: 'PLD',
+          property: {
+            id: 'property-1',
+            addressInput: '1 Main Street',
+            facts: [
+              { label: 'Occupancy', value: '95%' },
+              { label: 'Occupancy', value: '97%' },
+            ],
+          },
+          metaTags: { title: 'Property Details', description: 'Property details' },
+        },
+      } as never,
+    });
+
+    expect(body).toContain('95%');
+    expect(body).toContain('97%');
+  });
+
   it('renders an empty-state message when there are no facts', () => {
     const { body } = render(Page, {
       props: {

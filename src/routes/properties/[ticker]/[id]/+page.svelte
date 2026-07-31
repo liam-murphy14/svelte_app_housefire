@@ -58,7 +58,7 @@
         <dl
           class="mt-4 divide-y divide-hf-grey rounded-xl border border-hf-base-dark/20 bg-hf-base-light"
         >
-          {#each data.property.facts as fact (fact.label)}
+          {#each data.property.facts as fact, factIndex (fact.label + '-' + factIndex)}
             <div
               class="grid gap-1 px-4 py-4 sm:grid-cols-[minmax(0,0.35fr)_minmax(0,0.65fr)] sm:gap-4"
             >
