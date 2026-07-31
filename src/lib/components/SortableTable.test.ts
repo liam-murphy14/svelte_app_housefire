@@ -35,4 +35,23 @@ describe('SortableTable', () => {
     expect(body).toContain('aria-label="Focus 123 Market Street on map"');
     expect(body).toContain('>123 Market Street</button>');
   });
+
+  it('renders a visible first-cell detail link without replacing row behavior', () => {
+    const { body } = render(SortableTable, {
+      props: {
+        idKey: 'id',
+        tableHeaders: { name: 'Name', city: 'City' },
+        tableData: [{ id: 'property-1', name: 'Warehouse', city: 'Dallas' }],
+        rowActionLabel: (row: Record<string, unknown>) => `View ${row.name} property details`,
+        rowActionText: (row: Record<string, unknown>) => String(row.name),
+        rowActionHref: () => '/properties/PLD/property-1',
+      },
+    });
+
+    expect(body).toContain('href="/properties/PLD/property-1"');
+    expect(body).toContain('aria-label="View Warehouse property details"');
+    expect(body).toContain('>Warehouse</a>');
+    expect(body).toContain('underline');
+    expect(body).not.toContain('>Warehouse</button>');
+  });
 });
