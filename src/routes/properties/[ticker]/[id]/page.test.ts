@@ -13,9 +13,14 @@ describe('property detail page', () => {
             name: 'Warehouse',
             addressInput: '1 Main Street, Dallas, TX',
             address: '1 Main Street',
+            address2: 'Suite 100',
+            neighborhood: 'Design District',
             city: 'Dallas',
             state: 'TX',
             zip: '75001',
+            country: 'United States',
+            latitude: 32.7767,
+            longitude: -96.797,
             squareFootage: 125000,
             facts: [
               { label: 'Year built', value: '2022' },
@@ -28,11 +33,34 @@ describe('property detail page', () => {
     });
 
     expect(body).toContain('Warehouse');
+    expect(body).toContain('Suite 100');
+    expect(body).toContain('Design District');
+    expect(body).toContain('32.777');
+    expect(body).toContain('-96.797');
     expect(body).toContain('125,000');
     expect(body).toContain('Year built');
     expect(body).toContain('2022');
     expect(body.indexOf('Year built')).toBeLessThan(body.indexOf('Lease term'));
     expect(body).toContain('href="/properties/PLD"');
+  });
+
+  it('uses the address input as the heading when the property name is only whitespace', () => {
+    const { body } = render(Page, {
+      props: {
+        data: {
+          ticker: 'PLD',
+          property: {
+            id: 'property-1',
+            name: '   ',
+            addressInput: '1 Main Street',
+            facts: [],
+          },
+          metaTags: { title: 'Property Details', description: 'Property details' },
+        },
+      } as never,
+    });
+
+    expect(body).toMatch(/<h1[^>]*>\s*1 Main Street\s*<\/h1>/);
   });
 
   it('renders every fact when labels are duplicated', () => {

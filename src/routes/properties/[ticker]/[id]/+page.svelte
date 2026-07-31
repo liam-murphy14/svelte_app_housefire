@@ -3,11 +3,14 @@
   import { displayPropertyValue } from '$lib/utils/propertyDisplay';
   import type { PageData } from './$types';
 
-  export let data: PageData;
+  let { data }: { data: PageData } = $props();
 
-  const propertyLocation = [data.property.city, data.property.state, data.property.zip]
-    .filter(Boolean)
-    .join(', ');
+  const propertyLocation = $derived(
+    [data.property.city, data.property.state, data.property.zip].filter(Boolean).join(', '),
+  );
+  const propertyHeading = $derived(
+    data.property.name?.trim() ? data.property.name : data.property.addressInput,
+  );
 </script>
 
 <div
@@ -20,9 +23,7 @@
       <p class="hf-caption-x uppercase tracking-[0.28em] text-hf-navy">
         {data.ticker} / Property detail
       </p>
-      <h1 class="mt-3 hf-heading-3">
-        {displayPropertyValue(data.property.name || data.property.addressInput)}
-      </h1>
+      <h1 class="mt-3 hf-heading-3">{displayPropertyValue(propertyHeading)}</h1>
       <p class="mt-3 max-w-2xl text-hf-base-dark/70 hf-body-1">
         {displayPropertyValue(data.property.address || data.property.addressInput)}
       </p>
@@ -32,12 +33,36 @@
       <h2 id="property-details-title" class="hf-heading-5">Property details</h2>
       <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
+          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Name</dt>
+          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.name)}</dd>
+        </div>
+        <div>
+          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Address</dt>
+          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.address)}</dd>
+        </div>
+        <div>
+          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Address line 2</dt>
+          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.address2)}</dd>
+        </div>
+        <div>
+          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Neighborhood</dt>
+          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.neighborhood)}</dd>
+        </div>
+        <div>
           <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Location</dt>
           <dd class="mt-1 hf-body-2">{displayPropertyValue(propertyLocation)}</dd>
         </div>
         <div>
           <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Country</dt>
           <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.country)}</dd>
+        </div>
+        <div>
+          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Latitude</dt>
+          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.latitude)}</dd>
+        </div>
+        <div>
+          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Longitude</dt>
+          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.longitude)}</dd>
         </div>
         <div>
           <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Square footage</dt>
