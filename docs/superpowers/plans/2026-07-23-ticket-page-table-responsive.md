@@ -22,10 +22,12 @@
 ### Task 1: Add a tested property display formatter
 
 **Files:**
+
 - Create: `src/lib/utils/propertyDisplay.ts`
 - Test: `src/lib/utils/propertyDisplay.test.ts`
 
 **Interfaces:**
+
 - Produce `displayPropertyValue(value: string | number | null | undefined): string`.
 - Return `—` for `null`, `undefined`, and empty strings; preserve text; format numbers with `Intl.NumberFormat('en-US')`.
 
@@ -85,11 +87,13 @@ git commit -m "feat: add property display formatting helper"
 ### Task 2: Polish and make the desktop table keyboard-accessible
 
 **Files:**
+
 - Modify: `src/lib/components/Icon.svelte`
 - Modify: `src/lib/components/SortableTable.svelte`
 - Test: `src/lib/components/SortableTable.test.ts`
 
 **Interfaces:**
+
 - `Icon.svelte` accepts its existing `theme="base"` plus `theme="light"` for icons on dark surfaces.
 - `SortableTable.svelte` keeps `idKey`, `tableHeaders`, `tableData`, `sortFunctions`, and `rowOnClick` unchanged.
 - Header controls sort as before; rows call `rowOnClick(row)` on click or Enter/Space activation.
@@ -148,7 +152,7 @@ In `SortableTable.svelte`, keep the sorting state and `sortTable` implementation
 >
   <span class="hf-body-1-x">{tableHeaders[key]}</span>
   <Icon
-    src={sortKey === key ? sortDirection === 'asc' ? ChevronUp : ChevronDown : ChevronUpDown}
+    src={sortKey === key ? (sortDirection === 'asc' ? ChevronUp : ChevronDown) : ChevronUpDown}
     mini
     theme="light"
     size="md"
@@ -180,9 +184,11 @@ git commit -m "feat: polish sortable property table"
 ### Task 3: Add responsive ticket-page composition and mobile cards
 
 **Files:**
+
 - Modify: `src/routes/properties/[ticker]/+page.svelte`
 
 **Interfaces:**
+
 - Keep `PageServerData`, Leaflet setup, and existing `SortableTable` bindings.
 - Pass `joinedPropertyData` to the desktop table for marker focus.
 - Iterate over `data.properties` for mobile cards so they render immediately from server-loaded data before Leaflet finishes.
@@ -206,19 +212,28 @@ import { displayPropertyValue } from '$lib/utils/propertyDisplay';
 Use this layout contract:
 
 ```svelte
-<div class="min-h-full overflow-auto bg-hf-base-light px-6 py-8 text-hf-base-dark sm:px-10 lg:px-16 lg:py-10">
+<div
+  class="min-h-full overflow-auto bg-hf-base-light px-6 py-8 text-hf-base-dark sm:px-10 lg:px-16 lg:py-10"
+>
   <div class="mx-auto max-w-7xl">
     <header class="border-b border-hf-grey pb-6">
-      <p class="hf-caption-x uppercase tracking-[0.28em] text-hf-navy">{data.ticker} / Property portfolio</p>
+      <p class="hf-caption-x uppercase tracking-[0.28em] text-hf-navy">
+        {data.ticker} / Property portfolio
+      </p>
       <h1 class="mt-3 hf-heading-3">{data.ticker} Properties</h1>
-      <p class="mt-3 max-w-2xl text-hf-base-dark/70 hf-body-1">Explore the holdings on a map and sort the underlying property records.</p>
+      <p class="mt-3 max-w-2xl text-hf-base-dark/70 hf-body-1">
+        Explore the holdings on a map and sort the underlying property records.
+      </p>
     </header>
 
     <div class="mt-8 hidden gap-8 lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <section aria-labelledby="map-title">
         <p class="hf-caption-x uppercase tracking-[0.2em] text-hf-navy">01 / Map</p>
         <h2 id="map-title" class="mt-2 hf-heading-5">Where the portfolio sits</h2>
-        <div id="map" class="mt-3 h-[32rem] overflow-hidden rounded-xl border border-hf-base-dark/20"></div>
+        <div
+          id="map"
+          class="mt-3 h-[32rem] overflow-hidden rounded-xl border border-hf-base-dark/20"
+        ></div>
       </section>
       <section aria-labelledby="table-title" class="min-w-0">
         <p class="hf-caption-x uppercase tracking-[0.2em] text-hf-navy">02 / Records</p>
@@ -249,28 +264,47 @@ Use this layout contract:
       {#if data.properties.length > 0}
         <div class="mt-4 grid gap-4">
           {#each data.properties as property (property.id)}
-            <article class="rounded-xl border border-hf-base-dark/20 bg-hf-base-light p-5 shadow-[0_8px_24px_rgba(18,18,18,0.06)]">
+            <article
+              class="rounded-xl border border-hf-base-dark/20 bg-hf-base-light p-5 shadow-[0_8px_24px_rgba(18,18,18,0.06)]"
+            >
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <p class="hf-tiny-x uppercase tracking-[0.2em] text-hf-navy">Property record</p>
-                  <h3 class="mt-2 break-words text-hf-base-dark hf-heading-5">{displayPropertyValue(property.name)}</h3>
+                  <h3 class="mt-2 break-words text-hf-base-dark hf-heading-5">
+                    {displayPropertyValue(property.name)}
+                  </h3>
                 </div>
                 <div class="shrink-0 text-right">
-                  <p class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Square footage</p>
-                  <p class="mt-1 text-hf-base-dark hf-body-1-x">{displayPropertyValue(property.squareFootage)}</p>
+                  <p class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">
+                    Square footage
+                  </p>
+                  <p class="mt-1 text-hf-base-dark hf-body-1-x">
+                    {displayPropertyValue(property.squareFootage)}
+                  </p>
                 </div>
               </div>
               <div class="mt-5 border-t border-hf-grey pt-4">
                 <p class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Address</p>
-                <p class="mt-2 text-hf-base-dark hf-body-2">{displayPropertyValue(property.address)}</p>
-                <p class="mt-1 text-hf-base-dark/70 hf-caption">{displayPropertyValue([property.city, property.state, property.zip].filter(Boolean).join(', '))}</p>
+                <p class="mt-2 text-hf-base-dark hf-body-2">
+                  {displayPropertyValue(property.address)}
+                </p>
+                <p class="mt-1 text-hf-base-dark/70 hf-caption">
+                  {displayPropertyValue(
+                    [property.city, property.state, property.zip].filter(Boolean).join(', '),
+                  )}
+                </p>
               </div>
             </article>
           {/each}
         </div>
       {:else}
-        <div class="mt-4 rounded-xl border border-dashed border-hf-navy bg-hf-blue/20 p-6" role="status">
-          <p class="text-hf-base-dark hf-body-2">No property records are available for this ticker yet.</p>
+        <div
+          class="mt-4 rounded-xl border border-dashed border-hf-navy bg-hf-blue/20 p-6"
+          role="status"
+        >
+          <p class="text-hf-base-dark hf-body-2">
+            No property records are available for this ticker yet.
+          </p>
         </div>
       {/if}
     </section>
@@ -302,6 +336,7 @@ git commit -m "feat: add responsive property cards"
 ### Task 4: Run the complete verification pass and inspect the final diff
 
 **Files:**
+
 - Read: `docs/superpowers/specs/2026-07-23-ticket-page-table-responsive-design.md`
 - Read: `git diff` and `git status --short`
 
