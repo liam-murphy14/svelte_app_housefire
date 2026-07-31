@@ -5,7 +5,7 @@
   export let src: IconSource;
   export let solid: boolean = false;
   export let mini: boolean = false;
-  export let theme = 'base' as const;
+  export let theme: 'base' | 'light' = 'base';
   export let size: 'sm' | 'md' | 'lg' = 'md';
 </script>
 
@@ -16,6 +16,7 @@
   class={classNames(
     'flex-shrink-0',
     theme === 'base' ? 'text-hf-base-dark' : '',
+    theme === 'light' ? 'text-hf-base-light' : '',
     size === 'sm' ? 'w-4 h-4' : '',
     size === 'md' ? 'w-6 h-6' : '',
     size === 'lg' ? 'w-8 h-8' : '',
