@@ -29,6 +29,8 @@
 
   const focusProperty = (tableRowData: Record<string, unknown>) => {
     const property = tableRowData as unknown as PropertyWithMarker;
+    if (!leaflet || !map || !property.marker) return;
+
     // TODO: add better error handling for missing lat/lng
     const lat = property.latitude ?? 0;
     const lng = property.longitude ?? 0;

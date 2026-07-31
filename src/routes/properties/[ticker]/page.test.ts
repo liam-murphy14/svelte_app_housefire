@@ -3,6 +3,33 @@ import { describe, expect, it } from 'vitest';
 import Page from './+page.svelte';
 
 describe('ticker property page', () => {
+  it('renders property rows before the map initializes', () => {
+    const { body } = render(Page, {
+      props: {
+        data: {
+          ticker: 'PLD',
+          properties: [
+            {
+              id: 'property-1',
+              name: 'Warehouse',
+              addressInput: '1 Main Street, Dallas, TX',
+              city: 'Dallas',
+              state: 'TX',
+              facts: [],
+            },
+          ],
+          metaTags: { title: 'PLD Property Data', description: 'Property data' },
+        },
+      } as never,
+    });
+
+    const tableStart = body.indexOf('<table');
+    const tableEnd = body.indexOf('</table>') + '</table>'.length;
+    const tableMarkup = body.slice(tableStart, tableEnd);
+
+    expect(tableMarkup).toContain('Warehouse');
+  });
+
   it('keeps the desktop table narrow and links the property name to details', () => {
     const { body } = render(Page, {
       props: {
