@@ -56,7 +56,13 @@ npm run dev
 
 The local development server is normally available at `http://localhost:5173`.
 
-If the database schema is not already present, use the Prisma CLI with the configured `DB_URL` and inspect the command before applying it. This repository has `prisma/schema.prisma` but no tracked `prisma/migrations` directory, so schema synchronization and migration strategy are currently implicit rather than documented in scripts.
+Apply tracked Prisma migrations through `DB_URL_DIRECT` with:
+
+```sh
+npm run db:migrate
+```
+
+Run this command before deploying application code that depends on a new schema field. Inspect the migration and confirm `DB_URL_DIRECT` points at the intended database before applying it.
 
 The demo seed is configured in `package.json` as `vite-node ./src/lib/server/db/seed.ts`; with a reachable database it can be invoked through Prisma's seed command:
 
@@ -70,18 +76,19 @@ The seed creates a `PLD` REIT with two sample properties. It uses a top-level cr
 
 All commands are defined in `package.json`:
 
-| Command                    | Purpose                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------- |
-| `npm run dev`              | Start Vite/SvelteKit development mode.                                                            |
-| `npm run build`            | Build the SvelteKit app for the configured Vercel adapter.                                        |
-| `npm run preview`          | Serve the built app locally.                                                                      |
-| `npm run check`            | Run SvelteKit sync and `svelte-check` with the repository TypeScript config.                      |
-| `npm run lint`             | Check Prettier formatting, then run ESLint.                                                       |
-| `npm run prettier`         | Rewrite the repository with Prettier; use carefully because it is broad.                          |
-| `npm run test:unit`        | Run Vitest tests under `src`.                                                                     |
-| `npm run test:integration` | Run Playwright tests under `tests`; its web server first runs `npm run build && npm run preview`. |
-| `npm test`                 | Run integration tests first, then unit tests.                                                     |
-| `npm run check:watch`      | Run `svelte-check` in watch mode.                                                                 |
+| Command                    | Purpose                                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `npm run dev`              | Start Vite/SvelteKit development mode.                                                               |
+| `npm run build`            | Build the SvelteKit app for the configured Vercel adapter.                                           |
+| `npm run db:migrate`       | Apply tracked Prisma migrations through `DB_URL_DIRECT`; run before deploying code using new fields. |
+| `npm run preview`          | Serve the built app locally.                                                                         |
+| `npm run check`            | Run SvelteKit sync and `svelte-check` with the repository TypeScript config.                         |
+| `npm run lint`             | Check Prettier formatting, then run ESLint.                                                          |
+| `npm run prettier`         | Rewrite the repository with Prettier; use carefully because it is broad.                             |
+| `npm run test:unit`        | Run Vitest tests under `src`.                                                                        |
+| `npm run test:integration` | Run Playwright tests under `tests`; its web server first runs `npm run build && npm run preview`.    |
+| `npm test`                 | Run integration tests first, then unit tests.                                                        |
+| `npm run check:watch`      | Run `svelte-check` in watch mode.                                                                    |
 
 Useful direct commands:
 
