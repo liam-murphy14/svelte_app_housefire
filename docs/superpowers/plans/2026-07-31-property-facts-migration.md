@@ -22,9 +22,11 @@
 ### Task 1: Reproduce the missing-column contract
 
 **Files:**
+
 - No committed files; use the configured direct database connection as the failing integration check.
 
 **Interfaces:**
+
 - Consumes: PostgreSQL metadata through Prisma CLI and `DB_URL_DIRECT`.
 - Produces: A confirmed pre-migration failure showing that `Property.facts` is absent.
 
@@ -61,11 +63,13 @@ Expected before the fix: the query returns no row, confirming the production err
 ### Task 2: Add the tracked migration and deployment command
 
 **Files:**
+
 - Create: `prisma/migrations/20260731200000_add_property_facts/migration.sql`
 - Modify: `package.json` scripts
 - Modify: `AGENTS.md` database setup and command guidance
 
 **Interfaces:**
+
 - Consumes: The existing `Property.facts Json @default("[]")` declaration in `prisma/schema.prisma`.
 - Produces: A migration deployable by `npm run db:migrate` that adds a non-null JSONB column with an empty-array default.
 
@@ -115,9 +119,11 @@ Expected: schema validation succeeds, the migration is recognized, and Prisma re
 ### Task 3: Apply and verify the production-compatible schema
 
 **Files:**
+
 - No additional files.
 
 **Interfaces:**
+
 - Consumes: `prisma/migrations/20260731200000_add_property_facts/migration.sql` and `DB_URL_DIRECT`.
 - Produces: A database whose `Property` table contains the `facts` column and whose Prisma migration history records the change.
 
