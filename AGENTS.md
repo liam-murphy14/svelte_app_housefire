@@ -32,8 +32,9 @@ The project is an npm-based, TypeScript-enabled SvelteKit app using Svelte 5, Vi
 
 Required environment:
 
-- `DB_URL`: PostgreSQL connection URL. It is read by `prisma.config.ts` through `dotenv/config`.
-- `SELF_API_KEY`: private server value used by `src/hooks.server.ts` to authenticate every `/api` request.
+- `DB_URL`: runtime PostgreSQL connection URL used by `src/lib/server/db/prisma.ts`.
+- `DB_URL_DIRECT`: direct PostgreSQL connection URL required by `prisma.config.ts` and Prisma CLI commands such as `npm run db:migrate`.
+- `SELF_API_KEY`: runtime API authentication secret used by `src/hooks.server.ts` to authenticate every `/api` request.
 
 Create a local `.env` with those values before using the database or API. Never put actual credentials in this file in a commit. The current local `.env` contains a `DB_URL` key; do not expose its value in logs or documentation.
 
@@ -136,7 +137,7 @@ The repository's maintained static checks and unit tests are currently expected 
 ├── tsconfig.json              Strict TypeScript config extending generated SvelteKit types
 ├── tailwind.config.cjs        Housefire colors, Poppins font, and type scale
 ├── postcss.config.cjs         Tailwind 4 PostCSS adapter configuration
-├── prisma.config.ts           Prisma schema and DB_URL configuration
+├── prisma.config.ts           Prisma schema and DB_URL_DIRECT configuration for Prisma CLI commands
 ├── flake.nix / flake.lock     Reproducible Node development shell and formatter
 └── dotfiles                   ESLint, Prettier, npm, envrc, and gitignore rules
 ```
