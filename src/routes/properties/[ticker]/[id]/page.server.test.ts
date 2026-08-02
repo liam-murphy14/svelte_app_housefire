@@ -35,6 +35,7 @@ describe('property detail page load', () => {
     });
 
     const result = await load(loadEvent({ ticker: 'PLD', id: 'property-1' }));
+    if (!result) throw new Error('Expected property detail page data');
 
     expect(result).toMatchObject({
       property: {
@@ -61,6 +62,7 @@ describe('property detail page load', () => {
     });
 
     const result = await load(loadEvent({ ticker: 'PLD', id: 'property-1' }));
+    if (!result) throw new Error('Expected property detail page data');
 
     expect(result.metaTags.title).toBe('PLD | Property Property Details');
     expect(result.metaTags.title).not.toContain('backend-only-address-input');
