@@ -44,17 +44,29 @@ import { formatPropertyAddress } from './propertyAddress';
 
 describe('formatPropertyAddress', () => {
   it('formats the full address with state and ZIP together', () => {
-    expect(formatPropertyAddress({
-      address: '1 Main Street', address2: 'Suite 100', city: 'Dallas',
-      state: 'TX', zip: '75001', country: 'United States',
-    })).toBe('1 Main Street, Suite 100, Dallas, TX 75001, United States');
+    expect(
+      formatPropertyAddress({
+        address: '1 Main Street',
+        address2: 'Suite 100',
+        city: 'Dallas',
+        state: 'TX',
+        zip: '75001',
+        country: 'United States',
+      }),
+    ).toBe('1 Main Street, Suite 100, Dallas, TX 75001, United States');
   });
 
   it('omits blank components', () => {
-    expect(formatPropertyAddress({
-      address: '1 Main Street', address2: '   ', city: 'Dallas',
-      state: null, zip: '75001', country: 'United States',
-    })).toBe('1 Main Street, Dallas, 75001, United States');
+    expect(
+      formatPropertyAddress({
+        address: '1 Main Street',
+        address2: '   ',
+        city: 'Dallas',
+        state: null,
+        zip: '75001',
+        country: 'United States',
+      }),
+    ).toBe('1 Main Street, Dallas, 75001, United States');
   });
 
   it('returns an empty string when no visible fields exist', () => {
@@ -84,12 +96,17 @@ export type PropertyAddressFields = {
 const clean = (value: string | null | undefined): string => value?.trim() || '';
 
 export const formatPropertyAddress = ({
-  address, address2, city, state, zip, country,
+  address,
+  address2,
+  city,
+  state,
+  zip,
+  country,
 }: PropertyAddressFields): string => {
   const location = [clean(city), [clean(state), clean(zip)].filter(Boolean).join(' ')]
-    .filter(Boolean).join(', ');
-  return [clean(address), clean(address2), location, clean(country)]
-    .filter(Boolean).join(', ');
+    .filter(Boolean)
+    .join(', ');
+  return [clean(address), clean(address2), location, clean(country)].filter(Boolean).join(', ');
 };
 ```
 
@@ -115,9 +132,13 @@ Import `withSquareFootageFact` and add:
 ```ts
 describe('withSquareFootageFact', () => {
   it('prepends formatted square footage and preserves stored order', () => {
-    const facts = [{ label: 'Year built', value: '2022' }, { label: 'Lease term', value: '15 years' }];
+    const facts = [
+      { label: 'Year built', value: '2022' },
+      { label: 'Lease term', value: '15 years' },
+    ];
     expect(withSquareFootageFact(facts, 125000)).toEqual([
-      { label: 'Square footage', value: '125,000' }, ...facts,
+      { label: 'Square footage', value: '125,000' },
+      ...facts,
     ]);
   });
 
@@ -145,10 +166,14 @@ Add after `parsePropertyFacts`:
 
 ```ts
 export const withSquareFootageFact = (
-  facts: PropertyFact[], squareFootage: number | null | undefined,
+  facts: PropertyFact[],
+  squareFootage: number | null | undefined,
 ): PropertyFact[] => {
-  if (typeof squareFootage !== 'number' || !Number.isFinite(squareFootage) ||
-      facts.some((fact) => fact.label.trim().toLowerCase() === 'square footage')) {
+  if (
+    typeof squareFootage !== 'number' ||
+    !Number.isFinite(squareFootage) ||
+    facts.some((fact) => fact.label.trim().toLowerCase() === 'square footage')
+  ) {
     return facts;
   }
   return [
@@ -179,10 +204,12 @@ Update the happy-path mock with `name: ''`, visible address fields, `squareFoota
 
 ```ts
 expect(result).toMatchObject({
-  property: { facts: [
-    { label: 'Square footage', value: '125,000' },
-    { label: 'Year built', value: '2022' },
-  ] },
+  property: {
+    facts: [
+      { label: 'Square footage', value: '125,000' },
+      { label: 'Year built', value: '2022' },
+    ],
+  },
   metaTags: {
     title: 'PLD | 1 Main Street, Suite 100, Dallas, TX 75001, United States Property Details',
   },
@@ -266,8 +293,10 @@ Import `leaflet/dist/leaflet.css`, `onMount`, `Map` as a type, and `formatProper
 const propertyAddress = $derived(formatPropertyAddress(data.property));
 const propertyHeading = $derived(data.property.name?.trim() || propertyAddress || 'Property');
 const hasCoordinates = $derived(
-  typeof data.property.latitude === 'number' && Number.isFinite(data.property.latitude) &&
-  typeof data.property.longitude === 'number' && Number.isFinite(data.property.longitude),
+  typeof data.property.latitude === 'number' &&
+    Number.isFinite(data.property.latitude) &&
+    typeof data.property.longitude === 'number' &&
+    Number.isFinite(data.property.longitude),
 );
 ```
 
@@ -281,11 +310,18 @@ Use `propertyAddress` for the subheading and `propertyHeading` for the heading f
 <section class="mt-8" aria-labelledby="property-location-title">
   <h2 id="property-location-title" class="hf-heading-5">Property location</h2>
   {#if hasCoordinates}
-    <div id="property-map" bind:this={mapElement}
-      class="mt-4 h-[24rem] overflow-hidden rounded-xl border border-hf-base-dark/20"></div>
+    <div
+      id="property-map"
+      bind:this={mapElement}
+      class="mt-4 h-[24rem] overflow-hidden rounded-xl border border-hf-base-dark/20"
+    ></div>
   {:else}
-    <p class="mt-4 rounded-xl border border-dashed border-hf-navy bg-hf-blue/20 p-6 hf-body-2"
-      role="status">Map unavailable for this property.</p>
+    <p
+      class="mt-4 rounded-xl border border-dashed border-hf-navy bg-hf-blue/20 p-6 hf-body-2"
+      role="status"
+    >
+      Map unavailable for this property.
+    </p>
   {/if}
 </section>
 ```
