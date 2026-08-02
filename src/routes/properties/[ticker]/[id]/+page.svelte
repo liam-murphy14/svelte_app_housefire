@@ -1,16 +1,78 @@
 <script lang="ts">
+  import 'leaflet/dist/leaflet.css';
+  import { onMount } from 'svelte';
+  import type { Map } from 'leaflet';
   import Link from '$lib/components/Link.svelte';
+  import { formatPropertyAddress } from '$lib/utils/propertyAddress';
   import { displayPropertyValue } from '$lib/utils/propertyDisplay';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
+  let mapElement = $state<HTMLDivElement>();
+  let map: Map | undefined;
 
   const propertyLocation = $derived(
     [data.property.city, data.property.state, data.property.zip].filter(Boolean).join(', '),
   );
-  const propertyHeading = $derived(
-    data.property.name?.trim() ? data.property.name : data.property.addressInput,
+  const propertyAddress = $derived(formatPropertyAddress(data.property));
+  const propertyHeading = $derived(data.property.name?.trim() || propertyAddress || 'Property');
+  const hasCoordinates = $derived(
+    typeof data.property.latitude === 'number' &&
+      Number.isFinite(data.property.latitude) &&
+      typeof data.property.longitude === 'number' &&
+      Number.isFinite(data.property.longitude),
   );
+
+  onMount(() => {
+    if (!hasCoordinates) return;
+
+    if (!mapElement) return;
+
+    const latitude = data.property.latitude;
+    const longitude = data.property.longitude;
+
+    if (
+      typeof latitude !== 'number' ||
+      !Number.isFinite(latitude) ||
+      typeof longitude !== 'number' ||
+      !Number.isFinite(longitude)
+    ) {
+      return;
+    }
+
+    let destroyed = false;
+
+    void (async () => {
+      const leafletModule = await import('leaflet');
+      if (destroyed) return;
+
+      const leaflet = leafletModule.default;
+      leaflet.Icon.Default.imagePath = '/leaflet/';
+
+      map = leaflet.map(mapElement).setView([latitude, longitude], 15);
+      leaflet
+        .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        })
+        .addTo(map);
+
+      const popup = document.createElement('div');
+      const popupHeading = document.createElement('strong');
+      const popupAddress = document.createElement('span');
+      popupHeading.textContent = propertyHeading;
+      popupAddress.textContent = propertyAddress || 'Address unavailable';
+      popup.append(popupHeading, document.createElement('br'), popupAddress);
+
+      leaflet.marker([latitude, longitude]).addTo(map).bindPopup(popup).openPopup();
+    })();
+
+    return () => {
+      destroyed = true;
+      map?.remove();
+      map = undefined;
+    };
+  });
 </script>
 
 <div
@@ -25,9 +87,27 @@
       </p>
       <h1 class="mt-3 hf-heading-3">{displayPropertyValue(propertyHeading)}</h1>
       <p class="mt-3 max-w-2xl text-hf-base-dark/70 hf-body-1">
-        {displayPropertyValue(data.property.address || data.property.addressInput)}
+        {displayPropertyValue(propertyAddress)}
       </p>
     </header>
+
+    <section class="mt-8" aria-labelledby="property-location-title">
+      <h2 id="property-location-title" class="hf-heading-5">Property location</h2>
+      {#if hasCoordinates}
+        <div
+          id="property-map"
+          bind:this={mapElement}
+          class="mt-4 h-[24rem] overflow-hidden rounded-xl border border-hf-base-dark/20"
+        ></div>
+      {:else}
+        <p
+          class="mt-4 rounded-xl border border-dashed border-hf-navy bg-hf-blue/20 p-6 hf-body-2"
+          role="status"
+        >
+          Map unavailable for this property.
+        </p>
+      {/if}
+    </section>
 
     <section class="mt-8" aria-labelledby="property-details-title">
       <h2 id="property-details-title" class="hf-heading-5">Property details</h2>
@@ -63,16 +143,6 @@
         <div>
           <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Longitude</dt>
           <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.longitude)}</dd>
-        </div>
-        <div>
-          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Square footage</dt>
-          <dd class="mt-1 hf-body-2">{displayPropertyValue(data.property.squareFootage)}</dd>
-        </div>
-        <div>
-          <dt class="hf-tiny-x uppercase tracking-[0.16em] text-hf-base-dark/60">Address input</dt>
-          <dd class="mt-1 break-words hf-body-2">
-            {displayPropertyValue(data.property.addressInput)}
-          </dd>
         </div>
       </dl>
     </section>
