@@ -1,6 +1,5 @@
 <script lang="ts">
   import 'leaflet/dist/leaflet.css';
-  import { onMount } from 'svelte';
   import type { Map } from 'leaflet';
   import Link from '$lib/components/Link.svelte';
   import { formatPropertyAddress } from '$lib/utils/propertyAddress';
@@ -23,15 +22,18 @@
       Number.isFinite(data.property.longitude),
   );
 
-  onMount(() => {
-    if (!hasCoordinates) return;
-
-    if (!mapElement) return;
-
+  $effect(() => {
+    const element = mapElement;
     const latitude = data.property.latitude;
     const longitude = data.property.longitude;
+    const popupHeadingText = propertyHeading;
+    const popupAddressText = propertyAddress;
+
+    map?.remove();
+    map = undefined;
 
     if (
+      !element ||
       typeof latitude !== 'number' ||
       !Number.isFinite(latitude) ||
       typeof longitude !== 'number' ||
@@ -49,22 +51,23 @@
       const leaflet = leafletModule.default;
       leaflet.Icon.Default.imagePath = '/leaflet/';
 
-      map = leaflet.map(mapElement).setView([latitude, longitude], 15);
+      const nextMap = leaflet.map(element).setView([latitude, longitude], 15);
+      map = nextMap;
       leaflet
         .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         })
-        .addTo(map);
+        .addTo(nextMap);
 
       const popup = document.createElement('div');
       const popupHeading = document.createElement('strong');
       const popupAddress = document.createElement('span');
-      popupHeading.textContent = propertyHeading;
-      popupAddress.textContent = propertyAddress || 'Address unavailable';
+      popupHeading.textContent = popupHeadingText;
+      popupAddress.textContent = popupAddressText || 'Address unavailable';
       popup.append(popupHeading, document.createElement('br'), popupAddress);
 
-      leaflet.marker([latitude, longitude]).addTo(map).bindPopup(popup).openPopup();
+      leaflet.marker([latitude, longitude]).addTo(nextMap).bindPopup(popup).openPopup();
     })();
 
     return () => {
