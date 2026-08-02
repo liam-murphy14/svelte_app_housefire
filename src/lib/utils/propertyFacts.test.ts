@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PropertyCreateManyInputSchema } from '$lib/utils/prismaGeneratedZod';
-import { parsePropertyFacts, PropertyFactsSchema } from './propertyFacts';
+import { parsePropertyFacts, PropertyFactsSchema, withSquareFootageFact } from './propertyFacts';
 
 const baseProperty = {
   addressInput: '100 Main Street, Anywhere, USA',
@@ -63,5 +63,30 @@ describe('parsePropertyFacts', () => {
     expect(parsePropertyFacts([])).toEqual([]);
     expect(parsePropertyFacts([{ label: 'Year built' }])).toEqual([]);
     expect(parsePropertyFacts({ label: 'Year built', value: '2022' })).toEqual([]);
+  });
+});
+
+describe('withSquareFootageFact', () => {
+  it('prepends formatted square footage and preserves stored order', () => {
+    const facts = [
+      { label: 'Year built', value: '2022' },
+      { label: 'Lease term', value: '15 years' },
+    ];
+    expect(withSquareFootageFact(facts, 125000)).toEqual([
+      { label: 'Square footage', value: '125,000' },
+      ...facts,
+    ]);
+  });
+
+  it('does not add a fact for missing or non-finite values', () => {
+    const facts = [{ label: 'Year built', value: '2022' }];
+    expect(withSquareFootageFact(facts, null)).toEqual(facts);
+    expect(withSquareFootageFact(facts, undefined)).toEqual(facts);
+    expect(withSquareFootageFact(facts, Number.NaN)).toEqual(facts);
+  });
+
+  it('does not duplicate an existing square-footage fact', () => {
+    const facts = [{ label: 'Square Footage', value: '125,000' }];
+    expect(withSquareFootageFact(facts, 125000)).toEqual(facts);
   });
 });
