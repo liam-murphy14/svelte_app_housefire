@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { getPropertyById } from '$lib/server/db/propertyQueries';
-import { parsePropertyFacts } from '$lib/utils/propertyFacts';
+import { formatPropertyAddress } from '$lib/utils/propertyAddress';
+import { parsePropertyFacts, withSquareFootageFact } from '$lib/utils/propertyFacts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -10,14 +11,17 @@ export const load: PageServerLoad = async ({ params }) => {
     error(404, { message: 'No property found' });
   }
 
+  const visibleAddress = formatPropertyAddress(property);
+  const propertyLabel = property.name?.trim() || visibleAddress || 'Property';
+
   return {
     ticker: params.ticker,
     property: {
       ...property,
-      facts: parsePropertyFacts(property.facts),
+      facts: withSquareFootageFact(parsePropertyFacts(property.facts), property.squareFootage),
     },
     metaTags: {
-      title: `${params.ticker} | ${property.name?.trim() || property.addressInput} Property Details`,
+      title: `${params.ticker} | ${propertyLabel} Property Details`,
       description: `See detailed property information and facts for ${params.ticker}.`,
     },
   };
