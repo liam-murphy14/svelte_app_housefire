@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "db:migrate": "prisma migrate deploy",
+    "db:migrate:beta": "DOTENV_CONFIG_PATH=.env prisma migrate deploy",
+    "db:migrate:prod": "DOTENV_CONFIG_PATH=.env.production prisma migrate deploy",
     "preview": "vite preview",
     "test": "npm run test:integration && npm run test:unit",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
