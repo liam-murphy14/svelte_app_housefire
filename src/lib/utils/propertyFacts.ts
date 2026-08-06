@@ -12,4 +12,21 @@ export const parsePropertyFacts = (value: unknown): PropertyFact[] => {
   return result.success ? result.data : [];
 };
 
+export const withSquareFootageFact = (
+  facts: PropertyFact[],
+  squareFootage: number | null | undefined,
+): PropertyFact[] => {
+  if (
+    typeof squareFootage !== 'number' ||
+    !Number.isFinite(squareFootage) ||
+    facts.some((fact) => fact.label.trim().toLowerCase() === 'square footage')
+  ) {
+    return facts;
+  }
+  return [
+    { label: 'Square footage', value: new Intl.NumberFormat('en-US').format(squareFootage) },
+    ...facts,
+  ];
+};
+
 export type PropertyFact = z.infer<typeof PropertyFactSchema>;
