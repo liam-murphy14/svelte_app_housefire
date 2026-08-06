@@ -32,11 +32,11 @@ The project is an npm-based, TypeScript-enabled SvelteKit app using Svelte 5, Vi
 
 Required environment:
 
-- `DB_URL`: runtime PostgreSQL connection URL used by `src/lib/server/db/prisma.ts`.
-- `DB_URL_DIRECT`: direct PostgreSQL connection URL required by `prisma.config.ts` and Prisma CLI commands such as `npm run db:migrate`.
-- `SELF_API_KEY`: runtime API authentication secret used by `src/hooks.server.ts` to authenticate every `/api` request.
+- `DB_URL`: local beta runtime PostgreSQL connection URL used by `src/lib/server/db/prisma.ts`, through PgBouncer on port `6432` to the `housefire_beta` database.
+- `DB_URL_DIRECT`: local beta direct PostgreSQL connection URL required by `prisma.config.ts` and Prisma CLI migration work, through port `5432` to the `housefire_beta` database.
+- `SELF_API_KEY`: local-only API authentication secret used by `src/hooks.server.ts` to authenticate every `/api` request on the beta-configured development server.
 
-Create a local `.env` with those values before using the database or API. Never put actual credentials in this file in a commit. The current local `.env` contains a `DB_URL` key; do not expose its value in logs or documentation.
+Create a local `.env` with those beta values before using the database or API; `.env` is the local beta default. `.env.production` is an ignored file reserved for production migration credentials. Keep beta and production API/database credentials separate. Never put actual credentials in either file in a commit. The current local `.env` contains a `DB_URL` key; do not expose its value in logs or documentation.
 
 Node and npm can be provided through the Nix development shell. `.envrc` contains:
 
@@ -57,13 +57,19 @@ npm run dev
 
 The local development server is normally available at `http://localhost:5173`.
 
-Apply tracked Prisma migrations through `DB_URL_DIRECT` with:
+Apply tracked Prisma migrations to the local beta database through `DB_URL_DIRECT` with:
 
 ```sh
-npm run db:migrate
+npm run db:migrate:beta
 ```
 
-Run this command before deploying application code that depends on a new schema field. Inspect the migration and confirm `DB_URL_DIRECT` points at the intended database before applying it.
+For production migrations, deliberately select `.env.production`, check that it targets production before execution, and run:
+
+```sh
+npm run db:migrate:prod
+```
+
+Do not run production migrations through the beta command. Neither migration command runs automatically through `npm run dev`, `npm run build`, or tests. Run the applicable migration command before deploying application code that depends on a new schema field, and inspect the migration and selected environment target before applying it.
 
 The demo seed is configured in `package.json` as `vite-node ./src/lib/server/db/seed.ts`; with a reachable database it can be invoked through Prisma's seed command:
 
@@ -77,19 +83,20 @@ The seed creates a `PLD` REIT with two sample properties. It uses a top-level cr
 
 All commands are defined in `package.json`:
 
-| Command                    | Purpose                                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `npm run dev`              | Start Vite/SvelteKit development mode.                                                               |
-| `npm run build`            | Build the SvelteKit app for the configured Vercel adapter.                                           |
-| `npm run db:migrate`       | Apply tracked Prisma migrations through `DB_URL_DIRECT`; run before deploying code using new fields. |
-| `npm run preview`          | Serve the built app locally.                                                                         |
-| `npm run check`            | Run SvelteKit sync and `svelte-check` with the repository TypeScript config.                         |
-| `npm run lint`             | Check Prettier formatting, then run ESLint.                                                          |
-| `npm run prettier`         | Rewrite the repository with Prettier; use carefully because it is broad.                             |
-| `npm run test:unit`        | Run Vitest tests under `src`.                                                                        |
-| `npm run test:integration` | Run Playwright tests under `tests`; its web server first runs `npm run build && npm run preview`.    |
-| `npm test`                 | Run integration tests first, then unit tests.                                                        |
-| `npm run check:watch`      | Run `svelte-check` in watch mode.                                                                    |
+| Command                    | Purpose                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run dev`              | Start Vite/SvelteKit development mode.                                                            |
+| `npm run build`            | Build the SvelteKit app for the configured Vercel adapter.                                        |
+| `npm run db:migrate:beta`  | Apply tracked migrations to `housefire_beta` through `DB_URL_DIRECT`.                             |
+| `npm run db:migrate:prod`  | Apply tracked migrations to production through `.env.production`.                                 |
+| `npm run preview`          | Serve the built app locally.                                                                      |
+| `npm run check`            | Run SvelteKit sync and `svelte-check` with the repository TypeScript config.                      |
+| `npm run lint`             | Check Prettier formatting, then run ESLint.                                                       |
+| `npm run prettier`         | Rewrite the repository with Prettier; use carefully because it is broad.                          |
+| `npm run test:unit`        | Run Vitest tests under `src`.                                                                     |
+| `npm run test:integration` | Run Playwright tests under `tests`; its web server first runs `npm run build && npm run preview`. |
+| `npm test`                 | Run integration tests first, then unit tests.                                                     |
+| `npm run check:watch`      | Run `svelte-check` in watch mode.                                                                 |
 
 Useful direct commands:
 
@@ -137,7 +144,7 @@ The repository's maintained static checks and unit tests are currently expected 
 ├── tsconfig.json              Strict TypeScript config extending generated SvelteKit types
 ├── tailwind.config.cjs        Housefire colors, Poppins font, and type scale
 ├── postcss.config.cjs         Tailwind 4 PostCSS adapter configuration
-├── prisma.config.ts           Prisma schema and DB_URL_DIRECT configuration for Prisma CLI commands
+├── prisma.config.ts           Prisma schema and DB_URL_DIRECT configuration for beta/production Prisma CLI commands
 ├── flake.nix / flake.lock     Reproducible Node development shell and formatter
 └── dotfiles                   ESLint, Prettier, npm, envrc, and gitignore rules
 ```
