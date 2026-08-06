@@ -83,20 +83,20 @@ The seed creates a `PLD` REIT with two sample properties. It uses a top-level cr
 
 All commands are defined in `package.json`:
 
-| Command                    | Purpose                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------- |
-| `npm run dev`              | Start Vite/SvelteKit development mode.                                                            |
-| `npm run build`            | Build the SvelteKit app for the configured Vercel adapter.                                        |
-| `npm run db:migrate:beta`  | Apply tracked migrations to `housefire_beta` through `DB_URL_DIRECT`.                             |
-| `npm run db:migrate:prod`  | Apply tracked migrations to production through `.env.production`.                                 |
-| `npm run preview`          | Serve the built app locally.                                                                      |
-| `npm run check`            | Run SvelteKit sync and `svelte-check` with the repository TypeScript config.                      |
-| `npm run lint`             | Check Prettier formatting, then run ESLint.                                                       |
-| `npm run prettier`         | Rewrite the repository with Prettier; use carefully because it is broad.                          |
-| `npm run test:unit`        | Run Vitest tests under `src`.                                                                     |
-| `npm run test:integration` | Run Playwright tests under `tests`; its web server first runs `npm run build && npm run preview`. |
-| `npm test`                 | Run integration tests first, then unit tests.                                                     |
-| `npm run check:watch`      | Run `svelte-check` in watch mode.                                                                 |
+| Command                    | Purpose                                                                                        |
+| -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `npm run dev`              | Start Vite/SvelteKit development mode.                                                         |
+| `npm run build`            | Build the SvelteKit app in Vite beta mode for the configured Vercel adapter.                   |
+| `npm run db:migrate:beta`  | Apply tracked migrations to `housefire_beta` through `DB_URL_DIRECT`.                          |
+| `npm run db:migrate:prod`  | Apply tracked migrations to production through `.env.production`.                              |
+| `npm run preview`          | Serve the built app locally in Vite beta mode.                                                 |
+| `npm run check`            | Run SvelteKit sync and `svelte-check` with the repository TypeScript config.                   |
+| `npm run lint`             | Check Prettier formatting, then run ESLint.                                                    |
+| `npm run prettier`         | Rewrite the repository with Prettier; use carefully because it is broad.                       |
+| `npm run test:unit`        | Run Vitest tests under `src`.                                                                  |
+| `npm run test:integration` | Run Playwright tests under `tests`; its web server first runs the beta-mode build and preview. |
+| `npm test`                 | Run integration tests first, then unit tests.                                                  |
+| `npm run check:watch`      | Run `svelte-check` in watch mode.                                                              |
 
 Useful direct commands:
 
@@ -113,7 +113,7 @@ The repository's maintained static checks and unit tests are currently expected 
 
 - `npm run check`: SvelteKit sync and `svelte-check` should report 0 errors and 0 warnings.
 - `npm run lint`: Prettier check and ESLint should both pass.
-- `npm run build`: the Vercel production build should pass without requiring a database connection during compilation. The adapter may still print warnings for optional `pg-native` and Cloudflare socket imports.
+- `npm run build`: the Vercel adapter build should pass in Vite beta mode without requiring a database connection during compilation. The adapter may still print warnings for optional `pg-native` and Cloudflare socket imports.
 - `npm run test:unit`: runs the arithmetic placeholder and the tested Zod validation-message helper.
 
 `npm run test:integration` and `npm test` require a reachable PostgreSQL database because the homepage and property page load data at request time. Playwright also builds and previews the app before opening the browser. Record the exact external dependency failure if those commands cannot run in the current environment.
