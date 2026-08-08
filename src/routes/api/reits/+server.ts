@@ -2,8 +2,19 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { ReitCreateInputSchema } from '$lib/utils/prismaGeneratedZod';
 import { ZodError } from 'zod';
-import { createReit } from '$lib/server/db/reitQueries';
+import { createReit, getAllReits } from '$lib/server/db/reitQueries';
 import { formatZodError } from '$lib/server/validation';
+
+export const GET: RequestHandler = async () => {
+  try {
+    return json(await getAllReits());
+  } catch (e) {
+    console.error('Error in GET /api/reits: ', e);
+    error(500, {
+      message: 'Something went wrong',
+    });
+  }
+};
 
 export const POST: RequestHandler = async ({ request }) => {
   try {

@@ -191,6 +191,7 @@ All routes below are under `/api` and therefore require the API key.
 
 | Method   | Route                                        | Behavior                                                                                                                                                                                  |
 | -------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/reits`                                 | Return all REIT records.                                                                                                                                                                  |
 | `POST`   | `/api/reits`                                 | Validate a `ReitCreateInput` body with generated Zod schema, then create a REIT.                                                                                                          |
 | `GET`    | `/api/geocodes`                              | Read filter fields from query parameters, plus `take` (default `5`) and `skip` (default `0`), validate Prisma args, and return geocodes.                                                  |
 | `POST`   | `/api/geocodes`                              | Validate a `GeocodeCreateInput` body and create a geocode.                                                                                                                                |
