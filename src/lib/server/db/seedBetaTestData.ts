@@ -34,7 +34,11 @@ export const seedBetaTestData = async (): Promise<{
   });
 };
 
-const result = await seedBetaTestData();
-console.log(
-  `Seeded ${BETA_TEST_REIT_TICKER}: ${result.propertyCount} properties, ${result.geocodeCount} geocodes`,
-);
+try {
+  const result = await seedBetaTestData();
+  console.log(
+    `Seeded ${BETA_TEST_REIT_TICKER}: ${result.propertyCount} properties, ${result.geocodeCount} geocodes`,
+  );
+} finally {
+  await prisma.$disconnect();
+}
