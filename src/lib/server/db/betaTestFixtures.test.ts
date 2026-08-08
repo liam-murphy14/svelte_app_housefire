@@ -43,6 +43,11 @@ describe('beta test fixtures', () => {
     expect(() => assertBetaSeedEnvironment('production')).toThrow(
       'Refusing to seed beta test data in production',
     );
-    expect(() => assertBetaSeedEnvironment('development')).not.toThrow();
+    expect(() =>
+      assertBetaSeedEnvironment('development', 'postgresql://localhost/housefire_beta'),
+    ).not.toThrow();
+    expect(() =>
+      assertBetaSeedEnvironment('development', 'postgresql://localhost/housefire_production'),
+    ).toThrow('Refusing to seed outside the beta database');
   });
 });

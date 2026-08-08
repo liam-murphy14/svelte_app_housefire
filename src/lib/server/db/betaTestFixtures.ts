@@ -2,10 +2,25 @@ import type { Prisma } from '@prisma/client';
 
 export const BETA_TEST_REIT_TICKER = 'HFTEST';
 export const BETA_TEST_GEOCODE_PREFIX = `${BETA_TEST_REIT_TICKER}:`;
+const BETA_DATABASE_NAME = 'housefire_beta';
 
-export const assertBetaSeedEnvironment = (nodeEnv = process.env.NODE_ENV): void => {
+export const assertBetaSeedEnvironment = (
+  nodeEnv = process.env.NODE_ENV,
+  dbUrl = process.env.DB_URL,
+): void => {
   if (nodeEnv === 'production') {
     throw new Error('Refusing to seed beta test data in production');
+  }
+
+  let databaseName: string;
+  try {
+    databaseName = new URL(dbUrl ?? '').pathname.replace(/^\/+/, '');
+  } catch {
+    throw new Error('Refusing to seed outside the beta database');
+  }
+
+  if (databaseName !== BETA_DATABASE_NAME) {
+    throw new Error('Refusing to seed outside the beta database');
   }
 };
 
