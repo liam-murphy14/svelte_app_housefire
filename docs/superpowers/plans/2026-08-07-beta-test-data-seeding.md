@@ -4,7 +4,7 @@
 
 **Goal:** Add a repeatable, explicitly beta-scoped command that recreates a reserved `HFTEST` REIT, three properties, and three geocodes without changing the existing `PLD` demo seed.
 
-**Architecture:** Keep fixture values and the beta safety guard in a database-free module so they can be unit-tested without importing Prisma. Add a standalone `vite-node` runner that uses the existing Prisma singleton and performs namespace cleanup plus recreation in one transaction. Add a package script that clears inherited direct-connection configuration and explicitly loads `.env`.
+**Architecture:** Keep fixture values and the beta safety guard in a database-free module so they can be unit-tested without importing Prisma. Add a standalone `vite-node` runner that uses the existing Prisma singleton and performs a beta-targeted full reset plus recreation in one transaction. Add a package script that clears inherited direct-connection configuration and explicitly loads `.env`.
 
 **Tech Stack:** TypeScript, Vite Node, Prisma 7 with the existing PostgreSQL adapter, Vitest, npm scripts, and SvelteKit path aliases.
 
@@ -12,10 +12,10 @@
 
 - Use the runtime `DB_URL` from `.env`; never use `DB_URL_DIRECT` for the beta seed.
 - Reserve ticker `HFTEST` and geocode address-input prefix `HFTEST:` for this fixture.
-- Delete only properties related to `HFTEST` and geocodes whose `addressInput` starts with `HFTEST:`.
+- The explicit beta command may delete all `Property`, `Reit`, and `Geocode` rows; delete properties before REITs to respect the relation.
 - Reject `NODE_ENV=production` before starting the Prisma transaction.
 - Keep the existing `src/lib/server/db/seed.ts` and its `PLD` demo behavior unchanged.
-- Do not log environment values or run the mutating seed command as part of automated verification.
+- Do not log environment values or run the mutating, full-reset seed command as part of automated verification.
 - Follow TDD for database-free behavior: each fixture or command test must fail for the expected missing behavior before its implementation is added.
 
 ---
@@ -23,10 +23,12 @@
 ### Task 1: Add and verify the beta package command
 
 **Files:**
+
 - Modify: `src/localEnvironment.test.ts`
 - Modify: `package.json`
 
 **Interfaces:**
+
 - Produces the npm script `db:seed:beta` for later tasks and user execution.
 
 - [ ] **Step 1: Write the failing command-selection test**
@@ -81,14 +83,16 @@ git commit -m "feat: add beta test-data seed command"
 ### Task 2: Define and test the database-free fixture module
 
 **Files:**
+
 - Create: `src/lib/server/db/betaTestFixtures.test.ts`
 - Create: `src/lib/server/db/betaTestFixtures.ts`
 
 **Interfaces:**
+
 - Produces `BETA_TEST_REIT_TICKER`, `BETA_TEST_GEOCODE_PREFIX`, `betaTestProperties`, `betaTestGeocodes`, and `assertBetaSeedEnvironment` for the seed runner.
 - `betaTestProperties` is a `Prisma.PropertyCreateWithoutReitInput[]`-compatible array with three records.
 - `betaTestGeocodes` is a `Prisma.GeocodeCreateManyInput[]`-compatible array with three records.
-- `assertBetaSeedEnvironment(nodeEnv?: string): void` throws for `production` and returns normally for other values.
+- `assertBetaSeedEnvironment(nodeEnv?: string, dbUrl?: string): void` throws for `production`, missing/invalid database URLs, or database URLs whose database name is not `housefire_beta`.
 
 - [ ] **Step 1: Write the failing fixture and safety tests**
 
@@ -140,7 +144,12 @@ describe('beta test fixtures', () => {
     expect(() => assertBetaSeedEnvironment('production')).toThrow(
       'Refusing to seed beta test data in production',
     );
-    expect(() => assertBetaSeedEnvironment('development')).not.toThrow();
+    expect(() =>
+      assertBetaSeedEnvironment('development', 'postgresql://localhost/housefire_beta'),
+    ).not.toThrow();
+    expect(() =>
+      assertBetaSeedEnvironment('development', 'postgresql://localhost/housefire_production'),
+    ).toThrow('Refusing to seed outside the beta database');
   });
 });
 ```
@@ -163,11 +172,26 @@ Create `src/lib/server/db/betaTestFixtures.ts` with the following shape and reco
 import type { Prisma } from '@prisma/client';
 
 export const BETA_TEST_REIT_TICKER = 'HFTEST';
-export const BETA_TEST_GEOCODE_PREFIX = `\${BETA_TEST_REIT_TICKER}:`;
+export const BETA_TEST_GEOCODE_PREFIX = `${BETA_TEST_REIT_TICKER}:`;
+const BETA_DATABASE_NAME = 'housefire_beta';
 
-export const assertBetaSeedEnvironment = (nodeEnv = process.env.NODE_ENV): void => {
+export const assertBetaSeedEnvironment = (
+  nodeEnv = process.env.NODE_ENV,
+  dbUrl = process.env.DB_URL,
+): void => {
   if (nodeEnv === 'production') {
     throw new Error('Refusing to seed beta test data in production');
+  }
+
+  let databaseName: string;
+  try {
+    databaseName = new URL(dbUrl ?? '').pathname.replace(/^\/+/, '');
+  } catch {
+    throw new Error('Refusing to seed outside the beta database');
+  }
+
+  if (databaseName !== BETA_DATABASE_NAME) {
+    throw new Error('Refusing to seed outside the beta database');
   }
 };
 
@@ -224,7 +248,7 @@ export const betaTestProperties = [
 
 export const betaTestGeocodes = betaTestProperties.map(
   ({ addressInput, city, state, zip, country, latitude, longitude }) => ({
-    addressInput: `\${BETA_TEST_GEOCODE_PREFIX}\${addressInput}`,
+    addressInput: `${BETA_TEST_GEOCODE_PREFIX}${addressInput}`,
     locality: city,
     administrativeAreaLevel1: state,
     postalCode: zip,
@@ -258,13 +282,17 @@ git commit -m "feat: define beta test-data fixtures"
 ### Task 3: Add the transactional seed runner
 
 **Files:**
+
+- Modify: `src/lib/server/db/betaTestFixtures.test.ts`
+- Modify: `src/lib/server/db/betaTestFixtures.ts`
 - Create: `src/lib/server/db/seedBetaTestData.ts`
 
 **Interfaces:**
+
 - Consumes the constants and guard from `./betaTestFixtures` and the existing default Prisma client from `$lib/server/db/prisma`.
 - Produces `seedBetaTestData(): Promise<{ propertyCount: number; geocodeCount: number }>` and an executable script entry point.
 
-- [ ] **Step 1: Confirm the database-free input contract before adding database code**
+- [ ] **Step 1: Run the new beta-target guard test and verify the expected failure**
 
 Run:
 
@@ -272,17 +300,17 @@ Run:
 npx vitest run src/lib/server/db/betaTestFixtures.test.ts
 ```
 
-Expected: both fixture tests pass. This is the red-green checkpoint for the runner's inputs; the runner itself is an operational database command and is verified through TypeScript checks rather than an automatic test that mutates beta data.
+Expected: the new non-beta URL assertion fails because the existing guard only checks `NODE_ENV`.
 
-- [ ] **Step 2: Implement the transactional runner**
+- [ ] **Step 2: Implement the beta-target guard and transactional runner**
 
-Create `src/lib/server/db/seedBetaTestData.ts`:
+Update `src/lib/server/db/betaTestFixtures.ts` with the URL check described in Task 2, then create `src/lib/server/db/seedBetaTestData.ts`:
 
 ```ts
+import 'dotenv/config';
 import prisma from '$lib/server/db/prisma';
 import {
   assertBetaSeedEnvironment,
-  BETA_TEST_GEOCODE_PREFIX,
   BETA_TEST_REIT_TICKER,
   betaTestGeocodes,
   betaTestProperties,
@@ -295,17 +323,9 @@ export const seedBetaTestData = async (): Promise<{
   assertBetaSeedEnvironment();
 
   return await prisma.$transaction(async (transaction) => {
-    await transaction.property.deleteMany({
-      where: { reitTicker: BETA_TEST_REIT_TICKER },
-    });
-    await transaction.reit.deleteMany({
-      where: { ticker: BETA_TEST_REIT_TICKER },
-    });
-    await transaction.geocode.deleteMany({
-      where: {
-        addressInput: { startsWith: BETA_TEST_GEOCODE_PREFIX },
-      },
-    });
+    await transaction.property.deleteMany({});
+    await transaction.reit.deleteMany({});
+    await transaction.geocode.deleteMany({});
 
     await transaction.reit.create({
       data: {
@@ -325,11 +345,11 @@ export const seedBetaTestData = async (): Promise<{
 
 const result = await seedBetaTestData();
 console.log(
-  `Seeded \${BETA_TEST_REIT_TICKER}: \${result.propertyCount} properties, \${result.geocodeCount} geocodes`,
+  `Seeded ${BETA_TEST_REIT_TICKER}: ${result.propertyCount} properties, ${result.geocodeCount} geocodes`,
 );
 ```
 
-The delete order is required by the `Property.reit` relation. `deleteMany` is safe when the first run finds no rows, and the transaction ensures cleanup and recreation commit together. Do not print connection details.
+The full reset is intentional: this command is explicitly beta-scoped, and the `DB_URL` guard rejects database names other than `housefire_beta`. The delete order is required by the `Property.reit` relation. Empty-table deletes are safe on the first run, and the transaction ensures cleanup and recreation commit together. Do not print connection details.
 
 - [ ] **Step 3: Run static checks for the runner**
 
@@ -346,16 +366,18 @@ Expected: formatting, ESLint, and Svelte/TypeScript checks pass. Do not run `npm
 - [ ] **Step 4: Commit the runner**
 
 ```bash
-git add src/lib/server/db/seedBetaTestData.ts
+git add src/lib/server/db/betaTestFixtures.ts src/lib/server/db/betaTestFixtures.test.ts src/lib/server/db/seedBetaTestData.ts
 git commit -m "feat: add transactional beta test-data seeder"
 ```
 
 ### Task 4: Run the complete applicable verification and review the diff
 
 **Files:**
+
 - Verify: all files changed by Tasks 1–3
 
 **Interfaces:**
+
 - Confirms the command, fixture module, and runner are consistent with the approved spec.
 
 - [ ] **Step 1: Run the complete unit suite**
@@ -385,10 +407,10 @@ Run:
 ```bash
 git diff --check
 git status --short
-git diff HEAD~3..HEAD --stat
+git diff 658198b..HEAD --stat
 ```
 
-Confirm that only the approved package command, environment test, fixture module/test, runner, and committed design/plan files are present; confirm that no `.env`, build output, or generated Prisma output was added.
+Confirm that only the approved package command, environment test, fixture module/test, runner, and updated design/plan files are present; confirm that no `.env`, build output, or generated Prisma output was added.
 
 - [ ] **Step 4: Provide the beta execution command**
 
@@ -399,4 +421,3 @@ npm run db:seed:beta
 ```
 
 State clearly that this command mutates the beta database and was not executed automatically.
-
