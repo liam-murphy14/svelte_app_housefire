@@ -28,10 +28,12 @@
 ### Task 1: Add pure table-data transformations
 
 **Files:**
+
 - Create: `src/lib/utils/tableData.ts`
 - Create: `src/lib/utils/tableData.test.ts`
 
 **Interfaces:**
+
 - Consumes: generic `Record<string, unknown>` rows, a search string, a sort key/direction, optional column comparator functions, a page number, and a positive rows-per-page value.
 - Produces: `TableRow`, `filterTableRows`, `sortTableRows`, `getPageCount`, `getPageRows`, `getPageNumbers`, and `clampPage` for `SortableTable.svelte`.
 
@@ -89,10 +91,18 @@ describe('table data helpers', () => {
       { id: '1', squareFootage: 200 },
       { id: '2', squareFootage: 50 },
     ];
-    const sortFunctions = { squareFootage: (left: unknown, right: unknown) => Number(left) - Number(right) };
+    const sortFunctions = {
+      squareFootage: (left: unknown, right: unknown) => Number(left) - Number(right),
+    };
 
-    expect(sortTableRows(input, 'squareFootage', 'asc', sortFunctions)).toEqual([input[1], input[0]]);
-    expect(sortTableRows(input, 'squareFootage', 'desc', sortFunctions)).toEqual([input[0], input[1]]);
+    expect(sortTableRows(input, 'squareFootage', 'asc', sortFunctions)).toEqual([
+      input[1],
+      input[0],
+    ]);
+    expect(sortTableRows(input, 'squareFootage', 'desc', sortFunctions)).toEqual([
+      input[0],
+      input[1],
+    ]);
   });
 
   it('calculates page counts and returns the requested page slice', () => {
@@ -208,11 +218,13 @@ git commit -m "feat: add table filtering and pagination helpers"
 ### Task 2: Add desktop search and pagination to `SortableTable`
 
 **Files:**
+
 - Modify: `src/lib/components/SortableTable.svelte`
 - Modify: `src/lib/components/SortableTable.test.ts`
 - Create: `src/lib/components/SortableTable.client.test.ts`
 
 **Interfaces:**
+
 - Consumes: `TableRow`, `SortDirection`, `SortFunctionMap`, and the six pure helpers from `src/lib/utils/tableData.ts`.
 - Produces: a backward-compatible `SortableTable` with the existing props plus `enablePagination: boolean`, defaulting to `false`; when enabled, it renders client-side search, page-size, result-summary, and numbered navigation controls.
 
@@ -221,31 +233,31 @@ git commit -m "feat: add table filtering and pagination helpers"
 Append to `src/lib/components/SortableTable.test.ts`:
 
 ```ts
-  it('renders desktop search and pagination controls over the first page', () => {
-    const rows = Array.from({ length: 26 }, (_, index) => ({
-      id: `property-${index + 1}`,
-      name: `Property ${index + 1}`,
-    }));
-    const { body } = render(SortableTable, {
-      props: {
-        idKey: 'id',
-        tableHeaders: { name: 'Name' },
-        tableData: rows,
-        enablePagination: true,
-      },
-    });
-
-    expect(body).toContain('Search properties');
-    expect(body).toContain('Showing 1–25 of 26 properties');
-    expect(body).toContain('Property 1');
-    expect(body).toContain('Property 25');
-    expect(body).not.toContain('Property 26');
-    expect(body).toContain('aria-current="page"');
-    expect(body).toContain('10');
-    expect(body).toContain('25');
-    expect(body).toContain('50');
-    expect(body).toContain('100');
+it('renders desktop search and pagination controls over the first page', () => {
+  const rows = Array.from({ length: 26 }, (_, index) => ({
+    id: `property-${index + 1}`,
+    name: `Property ${index + 1}`,
+  }));
+  const { body } = render(SortableTable, {
+    props: {
+      idKey: 'id',
+      tableHeaders: { name: 'Name' },
+      tableData: rows,
+      enablePagination: true,
+    },
   });
+
+  expect(body).toContain('Search properties');
+  expect(body).toContain('Showing 1–25 of 26 properties');
+  expect(body).toContain('Property 1');
+  expect(body).toContain('Property 25');
+  expect(body).not.toContain('Property 26');
+  expect(body).toContain('aria-current="page"');
+  expect(body).toContain('10');
+  expect(body).toContain('25');
+  expect(body).toContain('50');
+  expect(body).toContain('100');
+});
 ```
 
 - [ ] **Step 2: Run the focused component test and verify the new test fails**
@@ -371,11 +383,13 @@ git commit -m "feat: paginate and search sortable tables"
 ### Task 3: Add mobile incremental loading and wire the property page
 
 **Files:**
+
 - Modify: `src/routes/properties/[ticker]/+page.svelte`
 - Modify: `src/routes/properties/[ticker]/page.test.ts`
 - Create: `src/routes/properties/[ticker]/page.client.test.ts`
 
 **Interfaces:**
+
 - Consumes: `SortableTable`'s `enablePagination` prop and the existing `PageServerData` property array.
 - Produces: a property page that passes the full joined property data to the paginated desktop table, creates all map markers, and reveals mobile cards in batches of 25 through an `IntersectionObserver`.
 
@@ -430,7 +444,10 @@ Create `src/routes/properties/[ticker]/page.client.test.ts` with a happy-dom tes
 Use this test shape for the observer callback:
 
 ```ts
-observerCallbacks[0]([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+observerCallbacks[0](
+  [{ isIntersecting: true } as IntersectionObserverEntry],
+  {} as IntersectionObserver,
+);
 flushSync();
 expect(target.textContent).toContain('Property 26');
 ```
