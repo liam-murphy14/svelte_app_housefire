@@ -100,3 +100,43 @@ Final commands and results:
    - Passed: all matched files use Prettier code style.
 3. `npm run check`
    - Passed: `svelte-check found 0 errors and 0 warnings`.
+
+## Fix round 1 (2026-08-12)
+
+### Review findings addressed
+
+- Empty search results produce zero pages, while `clampPage` intentionally keeps the current page at 1. Navigation now disables both Previous and Next when `pageCount` is zero, so no inert forward navigation is presented.
+- Removed the dead `try`/`catch` around the synchronous sort-page reset.
+- Added user-facing coverage for empty-search navigation bounds, Previous/Next paging, page-size reset, sort reset, prop-driven data shrinking/page clamping, and the default controls-free table.
+
+### TDD evidence and commands
+
+1. Added the DOM and SSR regressions, then ran:
+
+   ```sh
+   npx vitest run src/lib/components/SortableTable.test.ts src/lib/components/SortableTable.client.test.ts
+   ```
+
+   - Red: 1 failed and 9 passed (10 total). With an unmatched search, Next was enabled; the exact assertion expected `true` and received `false` for `getButton(target, 'Next').disabled`.
+2. Applied the minimal navigation disable condition and sort-reset cleanup, then reran the same command.
+   - Green: 2 test files and 10 tests passed.
+3. Ran:
+
+   ```sh
+   npx prettier --check src/lib/components/SortableTable.svelte src/lib/components/SortableTable.test.ts src/lib/components/SortableTable.client.test.ts src/lib/utils/tableData.test.ts
+   ```
+
+   - Initially reported formatting required in `SortableTable.client.test.ts` only. Formatted that file and reran the command: all matched files use Prettier code style.
+4. Ran:
+
+   ```sh
+   npm run check
+   ```
+
+   - Passed: `svelte-check found 0 errors and 0 warnings`.
+5. Reran the focused Vitest command after formatting.
+   - Passed: 2 test files and 10 tests passed.
+
+### Fix-round concerns
+
+- No integration tests were run, as required.

@@ -80,4 +80,18 @@ describe('SortableTable', () => {
     expect(body).toContain('50');
     expect(body).toContain('100');
   });
+
+  it('keeps desktop controls opt-in', () => {
+    const { body } = render(SortableTable, {
+      props: {
+        idKey: 'id',
+        tableHeaders: { name: 'Name' },
+        tableData: [{ id: 'property-1', name: 'Warehouse' }],
+      },
+    });
+
+    expect(body).not.toContain('Search properties');
+    expect(body).not.toContain('Property table pages');
+    expect(body).not.toContain('Rows per page');
+  });
 });

@@ -54,11 +54,7 @@
       sortKey = headerKey;
       sortDirection = 'asc';
     }
-    try {
-      currentPage = 1;
-    } catch (e) {
-      console.error('Issue sorting table,', e);
-    }
+    currentPage = 1;
   };
 
   const onSearchInput = () => {
@@ -110,7 +106,7 @@
       <nav aria-label="Property table pages" class="flex items-center gap-1">
         <button
           type="button"
-          disabled={currentPage === 1}
+          disabled={pageCount === 0 || currentPage === 1}
           onclick={() => goToPage(currentPage - 1)}
         >
           Previous
@@ -127,7 +123,7 @@
         {/each}
         <button
           type="button"
-          disabled={currentPage === pageCount}
+          disabled={pageCount === 0 || currentPage === pageCount}
           onclick={() => goToPage(currentPage + 1)}
         >
           Next
