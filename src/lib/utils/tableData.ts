@@ -1,6 +1,7 @@
 export type TableRow = Record<string, unknown>;
 export type SortDirection = 'asc' | 'desc';
 export type SortFunctionMap = Record<string, (left: unknown, right: unknown) => number>;
+export type PageNumber = number | 'ellipsis';
 
 export const filterTableRows = (rows: TableRow[], query: string): TableRow[] => {
   const normalizedQuery = query.trim().toLowerCase();
@@ -48,8 +49,24 @@ export const getPageCount = (rowCount: number, rowsPerPage: number): number =>
 export const getPageRows = (rows: TableRow[], page: number, rowsPerPage: number): TableRow[] =>
   page > 0 && rowsPerPage > 0 ? rows.slice((page - 1) * rowsPerPage, page * rowsPerPage) : [];
 
-export const getPageNumbers = (pageCount: number): number[] =>
-  pageCount > 0 ? Array.from({ length: pageCount }, (_, index) => index + 1) : [];
+export const getPageNumbers = (pageCount: number, currentPage = 1): PageNumber[] => {
+  if (pageCount <= 0) return [];
+  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+
+  const boundedCurrentPage = Math.min(Math.max(currentPage, 1), pageCount);
+  const firstNearbyPage = Math.max(2, boundedCurrentPage - 1);
+  const lastNearbyPage = Math.min(pageCount - 1, boundedCurrentPage + 1);
+  const pageNumbers: PageNumber[] = [1];
+
+  if (firstNearbyPage > 2) pageNumbers.push('ellipsis');
+  for (let page = firstNearbyPage; page <= lastNearbyPage; page += 1) {
+    pageNumbers.push(page);
+  }
+  if (lastNearbyPage < pageCount - 1) pageNumbers.push('ellipsis');
+
+  pageNumbers.push(pageCount);
+  return pageNumbers;
+};
 
 export const clampPage = (page: number, pageCount: number): number =>
   pageCount > 0 ? Math.min(Math.max(page, 1), pageCount) : 1;

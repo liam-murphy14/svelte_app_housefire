@@ -94,4 +94,31 @@ describe('SortableTable', () => {
     expect(body).not.toContain('Property table pages');
     expect(body).not.toContain('Rows per page');
   });
+
+  it('renders bounded, visibly accessible page navigation', () => {
+    const rows = Array.from({ length: 201 }, (_, index) => ({
+      id: `property-${index + 1}`,
+      name: `Property ${index + 1}`,
+    }));
+    const { body } = render(SortableTable, {
+      props: {
+        idKey: 'id',
+        tableHeaders: { name: 'Name' },
+        tableData: rows,
+        enablePagination: true,
+      },
+    });
+
+    expect(body).toContain('aria-label="Go to page 1"');
+    expect(body).toContain('aria-label="Go to page 2"');
+    expect(body).toContain('aria-label="Go to page 9"');
+    expect(body).not.toContain('aria-label="Go to page 3"');
+    expect(body).toContain('aria-hidden="true"');
+    expect(body).toContain('min-h-10');
+    expect(body).toContain('min-w-10');
+    expect(body).toContain('hover:bg-hf-blue/20');
+    expect(body).toContain('focus-visible:outline-hf-orange');
+    expect(body).toContain('bg-hf-navy');
+    expect(body).toContain('disabled:cursor-not-allowed');
+  });
 });

@@ -41,7 +41,7 @@
   $: visibleTableData = enablePagination
     ? getPageRows(sortedTableData, currentPage, rowsPerPage)
     : sortedTableData;
-  $: pageNumbers = getPageNumbers(pageCount);
+  $: pageNumbers = getPageNumbers(pageCount, currentPage);
   $: keys = Object.keys(tableHeaders);
   $: {
     currentPage = clampPage(currentPage, pageCount);
@@ -107,23 +107,35 @@
         <button
           type="button"
           disabled={pageCount === 0 || currentPage === 1}
+          class="min-h-10 min-w-10 rounded-md px-3 py-2 hf-body-2 text-hf-base-dark transition-colors hover:bg-hf-blue/20 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-orange disabled:cursor-not-allowed disabled:opacity-50"
           onclick={() => goToPage(currentPage - 1)}
         >
           Previous
         </button>
-        {#each pageNumbers as page (page)}
-          <button
-            type="button"
-            aria-current={page === currentPage ? 'page' : undefined}
-            aria-label={`Go to page ${page}`}
-            onclick={() => goToPage(page)}
-          >
-            {page}
-          </button>
+        {#each pageNumbers as pageNumber, index (`${pageNumber}-${index}`)}
+          {#if pageNumber === 'ellipsis'}
+            <span
+              aria-hidden="true"
+              class="flex min-h-10 min-w-10 items-center justify-center px-3 py-2 hf-body-2 text-hf-base-dark"
+            >
+              &hellip;
+            </span>
+          {:else}
+            <button
+              type="button"
+              aria-current={pageNumber === currentPage ? 'page' : undefined}
+              aria-label={`Go to page ${pageNumber}`}
+              class={`min-h-10 min-w-10 rounded-md px-3 py-2 hf-body-2 transition-colors hover:bg-hf-blue/20 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-orange disabled:cursor-not-allowed disabled:opacity-50 ${pageNumber === currentPage ? 'bg-hf-navy text-hf-base-light hover:bg-hf-navy' : 'text-hf-base-dark'}`}
+              onclick={() => goToPage(pageNumber)}
+            >
+              {pageNumber}
+            </button>
+          {/if}
         {/each}
         <button
           type="button"
           disabled={pageCount === 0 || currentPage === pageCount}
+          class="min-h-10 min-w-10 rounded-md px-3 py-2 hf-body-2 text-hf-base-dark transition-colors hover:bg-hf-blue/20 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hf-orange disabled:cursor-not-allowed disabled:opacity-50"
           onclick={() => goToPage(currentPage + 1)}
         >
           Next
@@ -205,13 +217,14 @@
         </tr>
       {:else}
         <tr>
-          <!-- svelte-ignore a11y_no_interactive_element_to_noninteractive_role -->
-          <td colspan={keys.length} role="status" class="px-4 py-3 hf-body-2 text-hf-base-dark">
-            {#if enablePagination}
-              No property records match "{searchQuery.trim()}".
-            {:else}
-              No property records are available.
-            {/if}
+          <td colspan={keys.length} class="px-4 py-3 hf-body-2 text-hf-base-dark">
+            <span role="status">
+              {#if tableData.length === 0}
+                No property records are available.
+              {:else}
+                No property records match "{searchQuery.trim()}".
+              {/if}
+            </span>
           </td>
         </tr>
       {/each}

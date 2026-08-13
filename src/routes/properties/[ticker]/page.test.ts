@@ -87,4 +87,19 @@ describe('ticker property page', () => {
     expect(body).toContain('Showing 25 of 26 properties.');
     expect(body).not.toContain('>Property 26</h3>');
   });
+
+  it('renders the empty paginated table state for an empty property list', () => {
+    const { body } = render(Page, {
+      props: {
+        data: {
+          ticker: 'PLD',
+          properties: [],
+          metaTags: { title: 'PLD Property Data', description: 'Property data' },
+        },
+      } as never,
+    });
+
+    expect(body).toContain('No property records are available.');
+    expect(body).toContain('No property records are available for this ticker yet.');
+  });
 });

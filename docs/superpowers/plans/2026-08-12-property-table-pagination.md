@@ -35,7 +35,7 @@
 **Interfaces:**
 
 - Consumes: generic `Record<string, unknown>` rows, a search string, a sort key/direction, optional column comparator functions, a page number, and a positive rows-per-page value.
-- Produces: `TableRow`, `filterTableRows`, `sortTableRows`, `getPageCount`, `getPageRows`, `getPageNumbers`, and `clampPage` for `SortableTable.svelte`.
+- Produces: `TableRow`, `PageNumber`, `filterTableRows`, `sortTableRows`, `getPageCount`, `getPageRows`, `getPageNumbers`, and `clampPage` for `SortableTable.svelte`.
 
 - [ ] **Step 1: Write failing utility tests for search, sorting, and paging**
 
@@ -140,6 +140,7 @@ Create `src/lib/utils/tableData.ts` with these exact exported types and signatur
 export type TableRow = Record<string, unknown>;
 export type SortDirection = 'asc' | 'desc';
 export type SortFunctionMap = Record<string, (left: unknown, right: unknown) => number>;
+export type PageNumber = number | 'ellipsis';
 
 export const filterTableRows = (rows: TableRow[], query: string): TableRow[] => {
   const normalizedQuery = query.trim().toLowerCase();
@@ -183,8 +184,10 @@ export const getPageCount = (rowCount: number, rowsPerPage: number): number =>
   rowCount > 0 && rowsPerPage > 0 ? Math.ceil(rowCount / rowsPerPage) : 0;
 export const getPageRows = (rows: TableRow[], page: number, rowsPerPage: number): TableRow[] =>
   page > 0 && rowsPerPage > 0 ? rows.slice((page - 1) * rowsPerPage, page * rowsPerPage) : [];
-export const getPageNumbers = (pageCount: number): number[] =>
-  pageCount > 0 ? Array.from({ length: pageCount }, (_, index) => index + 1) : [];
+export const getPageNumbers = (pageCount: number, currentPage?: number): PageNumber[] => {
+  // Return every page through 7; otherwise return the first/last pages,
+  // currentPage ± 1, and ellipses only where a numeric gap exists.
+};
 export const clampPage = (page: number, pageCount: number): number =>
   pageCount > 0 ? Math.min(Math.max(page, 1), pageCount) : 1;
 ```
@@ -195,7 +198,7 @@ Implement the following rules:
 - `sortTableRows` starts from `[...rows]`, uses the supplied comparator when `sortFunctions[sortKey]` exists, and otherwise preserves the current table's native comparison behavior: nullish values first ascending, numbers numerically, other values through `String(value).localeCompare(String(value))`, and descending as the inverse.
 - `getPageCount` returns `0` for zero rows or a non-positive rows-per-page value and otherwise returns `Math.ceil(rowCount / rowsPerPage)`.
 - `getPageRows` returns `rows.slice((page - 1) * rowsPerPage, page * rowsPerPage)` and returns an empty array for a non-positive page or rows-per-page value.
-- `getPageNumbers` returns the inclusive integer range from `1` through `pageCount`, or an empty array for a non-positive count.
+- `getPageNumbers` returns an empty array for a non-positive count and every page number for `pageCount <= 7`. For larger counts it returns page `1`, page `pageCount`, and the current page plus its immediate numeric neighbors, inserting `'ellipsis'` only for numeric gaps. For example, page 4 of 8 returns `[1, 'ellipsis', 3, 4, 5, 'ellipsis', 8]`; page 1 of 8 returns `[1, 2, 'ellipsis', 8]`.
 - `clampPage` returns `1` when `pageCount` is `0`, otherwise clamps the supplied page between `1` and `pageCount`.
 
 - [ ] **Step 4: Run the focused tests and the existing utility tests**
@@ -225,7 +228,7 @@ git commit -m "feat: add table filtering and pagination helpers"
 
 **Interfaces:**
 
-- Consumes: `TableRow`, `SortDirection`, `SortFunctionMap`, and the six pure helpers from `src/lib/utils/tableData.ts`.
+- Consumes: `TableRow`, `PageNumber`, `SortDirection`, `SortFunctionMap`, and the pure helpers from `src/lib/utils/tableData.ts`.
 - Produces: a backward-compatible `SortableTable` with the existing props plus `enablePagination: boolean`, defaulting to `false`; when enabled, it renders client-side search, page-size, result-summary, and numbered navigation controls.
 
 - [ ] **Step 1: Add a failing SSR test for enabled controls and first-page slicing**
@@ -328,7 +331,7 @@ In `SortableTable.svelte`:
 1. Replace the local `TableRow` definition with the imported `TableRow`, `SortDirection`, and `SortFunctionMap` types; import all table-data helpers.
 2. Keep `idKey`, `tableHeaders`, `tableData`, `sortFunctions`, `rowOnClick`, `rowActionLabel`, `rowActionText`, and `rowActionHref` unchanged. Add `export let enablePagination = false;`.
 3. Store `searchQuery = ''`, `rowsPerPage = 25`, and `currentPage = 1`.
-4. Derive `filteredTableData`, `sortedTableData`, `pageCount`, `currentPage`, `visibleTableData`, and `pageNumbers` using the imported helpers. Clamp `currentPage` after every input-data or filter change.
+4. Derive `filteredTableData`, `sortedTableData`, `pageCount`, `currentPage`, `visibleTableData`, and `pageNumbers` using the imported helpers. Pass both `pageCount` and `currentPage` to `getPageNumbers`; clamp `currentPage` after every input-data or filter change.
 5. Make `sortTableRows` operate on a copy and reset `currentPage` to `1` from the existing header-click handler. Keep the current native and custom comparator semantics.
 6. Add handlers with these signatures:
 
@@ -349,8 +352,8 @@ const goToPage = (page: number) => {
 
 7. Render the controls only when `enablePagination` is true. Use a wrapping `<label>` for the search input and select so both controls have visible accessible names. Use `type="search"`, placeholder `Search properties`, and `aria-label="Search properties"`.
 8. Render the result summary as a polite status. For non-empty results, use `Showing {start}-{end} of {filteredCount} properties`; for empty results, use `Showing 0 of 0 properties`.
-9. Render previous/next buttons and one button per `pageNumbers`. Disable previous on page 1 and next on the final page; set `aria-current="page"` on the active number and give every page button an `aria-label="Go to page N"`.
-10. Iterate `visibleTableData` in the existing `<tbody>`. When it is empty, render one `<tr><td colspan={keys.length} role="status">No property records match "{searchQuery.trim()}".</td></tr>` when pagination is enabled, and an equivalent `No property records are available.` message when pagination is disabled.
+9. Render Previous/Next buttons and the bounded `pageNumbers` window. Give every button visible hit-area, padding, hover, focus-visible, and disabled treatments. Numeric entries render direct-navigation buttons with `aria-label="Go to page N"`; set `aria-current="page"` and a visual active state on the current page. Render `'ellipsis'` entries as non-button `<span aria-hidden="true">` markers. Disable Previous on page 1 and Next on the final page.
+10. Iterate `visibleTableData` in the existing `<tbody>`. When it is empty, render an inner `<span role="status">` inside the table cell. Show `No property records are available.` when `tableData` is empty; otherwise show `No property records match "{searchQuery.trim()}".`.
 
 - [ ] **Step 5: Run the focused component tests and verify they pass**
 

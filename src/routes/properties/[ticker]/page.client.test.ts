@@ -173,6 +173,8 @@ describe('ticker property page mobile loading', () => {
     expect(leafletTestDouble.leaflet.marker).toHaveBeenCalledTimes(26);
     expect(page.target.textContent).toContain('Property 25');
     expect(page.target.textContent).not.toContain('Property 26');
+    const sentinel = page.target.querySelector('div[aria-hidden="true"]');
+    expect(observerInstances[0].observe).toHaveBeenCalledWith(sentinel);
 
     observerCallbacks[0](
       [{ isIntersecting: true } as IntersectionObserverEntry],

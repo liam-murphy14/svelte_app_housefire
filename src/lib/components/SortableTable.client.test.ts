@@ -57,8 +57,23 @@ describe('SortableTable desktop controls', () => {
     await Promise.resolve();
 
     expect(target.textContent).toContain('No property records match "unmatched".');
+    expect(target.querySelector('td > span[role="status"]')?.textContent).toContain(
+      'No property records match "unmatched".',
+    );
     expect(getButton(target, 'Previous').disabled).toBe(true);
     expect(getButton(target, 'Next').disabled).toBe(true);
+
+    component.$destroy();
+    target.remove();
+  });
+
+  it('distinguishes an initially empty table from an empty search result', () => {
+    const { component, target } = mountTable([]);
+
+    expect(target.textContent).toContain('No property records are available.');
+    expect(target.querySelector('td > span[role="status"]')?.textContent).toContain(
+      'No property records are available.',
+    );
 
     component.$destroy();
     target.remove();
@@ -80,6 +95,24 @@ describe('SortableTable desktop controls', () => {
     expect(target.querySelector('tbody')?.textContent).toContain('Property [01]');
     expect(target.querySelector('tbody')?.textContent).not.toContain('Property [26]');
     expect(target.querySelector('[aria-current="page"]')?.textContent).toBe('1');
+
+    component.$destroy();
+    target.remove();
+  });
+
+  it('selects a directly rendered page number from the bounded navigation', async () => {
+    const { component, target } = mountTable(propertyRows(201));
+
+    const pageTwoButton = target.querySelector(
+      'button[aria-label="Go to page 2"]',
+    ) as HTMLButtonElement;
+    pageTwoButton.click();
+    await Promise.resolve();
+
+    expect(target.querySelector('tbody')?.textContent).toContain('Property [26]');
+    expect(target.querySelector('tbody')?.textContent).not.toContain('Property [01]');
+    expect(target.querySelector('[aria-current="page"]')?.textContent).toBe('2');
+    expect(target.querySelectorAll('span[aria-hidden="true"]')).toHaveLength(1);
 
     component.$destroy();
     target.remove();

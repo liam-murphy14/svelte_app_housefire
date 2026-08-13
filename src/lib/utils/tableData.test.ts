@@ -116,4 +116,11 @@ describe('table data helpers', () => {
     expect(clampPage(0, 3)).toBe(1);
     expect(clampPage(7, 0)).toBe(1);
   });
+
+  it('returns a bounded page window with ellipses for larger result sets', () => {
+    expect(getPageNumbers(8, 1)).toEqual([1, 2, 'ellipsis', 8]);
+    expect(getPageNumbers(8, 2)).toEqual([1, 2, 3, 'ellipsis', 8]);
+    expect(getPageNumbers(8, 4)).toEqual([1, 'ellipsis', 3, 4, 5, 'ellipsis', 8]);
+    expect(getPageNumbers(8, 7)).toEqual([1, 'ellipsis', 6, 7, 8]);
+  });
 });
