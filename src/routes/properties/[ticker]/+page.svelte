@@ -11,11 +11,18 @@
   type PropertyWithMarker = {
     marker: Marker;
   } & Property;
+  const MOBILE_BATCH_SIZE = 25;
   export let data: PageServerData;
 
   let leaflet: typeof import('leaflet');
   let map: Map;
   let joinedPropertyData: Array<Property | PropertyWithMarker> = data.properties;
+  let mobileVisibleCount = MOBILE_BATCH_SIZE;
+  let mobileLoadMoreSentinel: HTMLDivElement;
+  let mobileLoadObserver: IntersectionObserver | undefined;
+
+  $: visibleMobileProperties = data.properties.slice(0, mobileVisibleCount);
+  $: hasMoreMobileProperties = visibleMobileProperties.length < data.properties.length;
 
   // FUNCTIONS FOR LEAFLET
   const addPropertyMarker = (property: Property) => {
@@ -52,31 +59,54 @@
   const propertyDetailsHref = (tableRowData: Record<string, unknown>) =>
     propertyDetailsPath(data.ticker, String(tableRowData.id));
 
-  onMount(async () => {
-    try {
-      // import leaflet onMount since it is client only
-      const l = await import('leaflet');
-      leaflet = l.default;
-      leaflet.Icon.Default.imagePath = '/leaflet/';
+  const loadMoreMobileProperties = () => {
+    mobileVisibleCount = Math.min(mobileVisibleCount + MOBILE_BATCH_SIZE, data.properties.length);
+  };
 
-      // initialize map
-      map = leaflet.map('map').setView([39, -98], 3);
-      leaflet
-        .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        })
-        .addTo(map);
+  onMount(() => {
+    const initializePage = async () => {
+      try {
+        // import leaflet onMount since it is client only
+        const l = await import('leaflet');
+        leaflet = l.default;
+        leaflet.Icon.Default.imagePath = '/leaflet/';
 
-      joinedPropertyData = data.properties.map((property) => {
-        return {
-          ...(property ?? {}),
-          marker: addPropertyMarker(property),
-        };
+        // initialize map
+        map = leaflet.map('map').setView([39, -98], 3);
+        leaflet
+          .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution:
+              '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          })
+          .addTo(map);
+
+        joinedPropertyData = data.properties.map((property) => {
+          return {
+            ...(property ?? {}),
+            marker: addPropertyMarker(property),
+          };
+        });
+      } catch (e) {
+        console.error(e);
+      }
+
+      mobileLoadObserver = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          loadMoreMobileProperties();
+        }
       });
-    } catch (e) {
-      console.error(e);
-    }
+
+      if (mobileLoadMoreSentinel) {
+        mobileLoadObserver.observe(mobileLoadMoreSentinel);
+      }
+    };
+
+    void initializePage();
+
+    return () => {
+      mobileLoadObserver?.disconnect();
+    };
   });
 </script>
 
@@ -120,6 +150,7 @@
               state: 'State',
             }}
             tableData={joinedPropertyData}
+            enablePagination={true}
             rowOnClick={focusProperty}
             rowActionLabel={(row) => `View ${propertyIdentifier(row)} property details`}
             rowActionText={propertyIdentifier}
@@ -135,7 +166,7 @@
       <h2 id="mobile-properties-title" class="mt-2 hf-heading-4">Holdings at a glance</h2>
       {#if data.properties.length > 0}
         <div class="mt-4 grid gap-4">
-          {#each data.properties as property (property.id)}
+          {#each visibleMobileProperties as property (property.id)}
             <article
               class="rounded-xl border border-hf-base-dark/20 bg-hf-base-light p-5 shadow-[0_8px_24px_rgba(18,18,18,0.06)]"
             >
@@ -169,6 +200,12 @@
             </article>
           {/each}
         </div>
+        {#if hasMoreMobileProperties}
+          <div bind:this={mobileLoadMoreSentinel} aria-hidden="true"></div>
+          <p class="mt-4 text-hf-base-dark/70 hf-caption" role="status">
+            Showing {visibleMobileProperties.length} of {data.properties.length} properties.
+          </p>
+        {/if}
       {:else}
         <div
           class="mt-4 rounded-xl border border-dashed border-hf-navy bg-hf-blue/20 p-6"
