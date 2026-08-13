@@ -54,4 +54,30 @@ describe('SortableTable', () => {
     expect(body).toContain('underline');
     expect(body).not.toContain('>Warehouse</button>');
   });
+
+  it('renders desktop search and pagination controls over the first page', () => {
+    const rows = Array.from({ length: 26 }, (_, index) => ({
+      id: `property-${index + 1}`,
+      name: `Property ${index + 1}`,
+    }));
+    const { body } = render(SortableTable, {
+      props: {
+        idKey: 'id',
+        tableHeaders: { name: 'Name' },
+        tableData: rows,
+        enablePagination: true,
+      },
+    });
+
+    expect(body).toContain('Search properties');
+    expect(body).toContain('Showing 1–25 of 26 properties');
+    expect(body).toContain('Property 1');
+    expect(body).toContain('Property 25');
+    expect(body).not.toContain('Property 26');
+    expect(body).toContain('aria-current="page"');
+    expect(body).toContain('10');
+    expect(body).toContain('25');
+    expect(body).toContain('50');
+    expect(body).toContain('100');
+  });
 });
