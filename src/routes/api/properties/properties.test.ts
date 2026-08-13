@@ -94,4 +94,10 @@ describe('POST /api/properties facts validation', () => {
     await expect(POST(eventWithBody(body))).rejects.toMatchObject({ status: 400 });
     expect(createManyProperties).not.toHaveBeenCalled();
   });
+
+  it('returns HTTP 400 for a property foreign-key database error', async () => {
+    createManyProperties.mockRejectedValue({ code: 'P2003' });
+
+    await expect(POST(eventWithBody(baseProperty))).rejects.toMatchObject({ status: 400 });
+  });
 });

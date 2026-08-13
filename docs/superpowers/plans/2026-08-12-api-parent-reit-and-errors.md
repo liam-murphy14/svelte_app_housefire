@@ -21,19 +21,22 @@
 ### Task 1: Add Prisma error translation and route regression tests
 
 **Files:**
+
 - Create: `src/lib/server/prismaErrors.ts`
 - Modify: `src/routes/api/geocodes/+server.ts`
 - Modify: `src/routes/api/geocodes/byAddressInput/[addressInput]/+server.ts`
+- Modify: `src/routes/api/properties/+server.ts`
 - Modify: `src/routes/api/properties/[id]/+server.ts`
 - Modify: `src/routes/api/properties/byTicker/[ticker]/+server.ts`
 - Modify: `src/routes/api/reits/+server.ts`
 - Test: route-local tests for the changed handlers, adding files where absent.
 
 **Interfaces:**
+
 - Produce `getPrismaHttpError(error: unknown): HttpError | null` (or an equivalent typed helper) that maps Prisma codes `P2002` to `409`, `P2003` to `400`, and `P2025` to `404`.
 - Preserve existing Zod `400` responses and successful JSON bodies.
 
-- [ ] **Step 1: Write failing tests** for geocode lookup message, property missing-record behavior, delete missing-record behavior, and duplicate REIT/geocode creation status.
+- [ ] **Step 1: Write failing tests** for geocode lookup message, property foreign-key and missing-record behavior, delete missing-record behavior, and duplicate REIT/geocode creation status.
 - [ ] **Step 2: Run the focused route tests** and verify the new assertions fail for the current generic/mislabelled responses.
 - [ ] **Step 3: Implement the small Prisma error-mapping helper** and wrap the affected database calls without catching validation errors as database errors.
 - [ ] **Step 4: Correct the geocode missing-record message** to `No geocode found`.
@@ -42,10 +45,12 @@
 ### Task 2: Atomically ensure parent REITs for property batches
 
 **Files:**
+
 - Modify: `src/lib/server/db/propertyQueries.ts`
 - Test: `src/lib/server/db/propertyQueries.test.ts`
 
 **Interfaces:**
+
 - Keep `createManyProperties(propertiesToCreate: Prisma.PropertyCreateManyInput | Prisma.PropertyCreateManyInput[])` unchanged for callers.
 - Use Prisma transaction-client methods to upsert each distinct `reitTicker` before `createManyAndReturn`.
 
@@ -58,6 +63,7 @@
 ### Task 3: Full verification and diff review
 
 **Files:**
+
 - Inspect all changed files and generated output; do not modify generated Prisma/Zod output.
 
 - [ ] **Step 1: Run focused unit tests** for the changed route and query-helper files.

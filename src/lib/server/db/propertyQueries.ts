@@ -40,7 +40,22 @@ export const deletePropertiesByTicker = async (ticker: string) => {
 export const createManyProperties = async (
   propertiesToCreate: Prisma.PropertyCreateManyInput | Prisma.PropertyCreateManyInput[],
 ) => {
-  return await prisma.property.createManyAndReturn({
-    data: propertiesToCreate,
+  const propertyInputs = Array.isArray(propertiesToCreate)
+    ? propertiesToCreate
+    : [propertiesToCreate];
+  const reitTickers = [...new Set(propertyInputs.map((property) => property.reitTicker))];
+
+  return await prisma.$transaction(async (transaction) => {
+    for (const ticker of reitTickers) {
+      await transaction.reit.upsert({
+        where: { ticker },
+        create: { ticker },
+        update: {},
+      });
+    }
+
+    return await transaction.property.createManyAndReturn({
+      data: propertiesToCreate,
+    });
   });
 };

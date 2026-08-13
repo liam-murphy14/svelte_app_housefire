@@ -5,6 +5,7 @@ import { PropertyCreateManyArgsSchema } from '$lib/utils/prismaGeneratedZod';
 import { PropertyFactsSchema } from '$lib/utils/propertyFacts';
 import { ZodError } from 'zod';
 import { formatZodError } from '$lib/server/validation';
+import { getPrismaHttpError } from '$lib/server/prismaErrors';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -37,6 +38,12 @@ export const POST: RequestHandler = async ({ request }) => {
     if (e instanceof ZodError) {
       error(400, {
         message: formatZodError(e),
+      });
+    }
+    const prismaHttpError = getPrismaHttpError(e);
+    if (prismaHttpError) {
+      error(prismaHttpError.status, {
+        message: prismaHttpError.message,
       });
     }
     console.error('Error in POST /api/properties: ', e);

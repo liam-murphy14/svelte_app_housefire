@@ -4,6 +4,7 @@ import { GeocodeCreateInputSchema, GeocodeFindManyArgsSchema } from '$lib/utils/
 import { ZodError } from 'zod';
 import { createGeocode, findManyGeocodes } from '$lib/server/db/geocodeQueries';
 import { formatZodError } from '$lib/server/validation';
+import { getPrismaHttpError } from '$lib/server/prismaErrors';
 
 export const GET: RequestHandler = async ({ url }) => {
   console.log('received GET request to /api/geocodes with url:', url);
@@ -30,6 +31,12 @@ export const GET: RequestHandler = async ({ url }) => {
         message: formatZodError(e),
       });
     }
+    const prismaHttpError = getPrismaHttpError(e);
+    if (prismaHttpError) {
+      error(prismaHttpError.status, {
+        message: prismaHttpError.message,
+      });
+    }
     console.error('Error in GET /api/geocodes: ', e);
     error(500, {
       message: 'Something went wrong',
@@ -48,6 +55,12 @@ export const POST: RequestHandler = async ({ request }) => {
     if (e instanceof ZodError) {
       error(400, {
         message: formatZodError(e),
+      });
+    }
+    const prismaHttpError = getPrismaHttpError(e);
+    if (prismaHttpError) {
+      error(prismaHttpError.status, {
+        message: prismaHttpError.message,
       });
     }
     console.error('Error in POST /api/geocodes: ', e);

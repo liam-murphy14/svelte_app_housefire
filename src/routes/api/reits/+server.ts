@@ -4,11 +4,18 @@ import { ReitCreateInputSchema } from '$lib/utils/prismaGeneratedZod';
 import { ZodError } from 'zod';
 import { createReit, getAllReits } from '$lib/server/db/reitQueries';
 import { formatZodError } from '$lib/server/validation';
+import { getPrismaHttpError } from '$lib/server/prismaErrors';
 
 export const GET: RequestHandler = async () => {
   try {
     return json(await getAllReits());
   } catch (e) {
+    const prismaHttpError = getPrismaHttpError(e);
+    if (prismaHttpError) {
+      error(prismaHttpError.status, {
+        message: prismaHttpError.message,
+      });
+    }
     console.error('Error in GET /api/reits: ', e);
     error(500, {
       message: 'Something went wrong',
@@ -27,6 +34,12 @@ export const POST: RequestHandler = async ({ request }) => {
     if (e instanceof ZodError) {
       error(400, {
         message: formatZodError(e),
+      });
+    }
+    const prismaHttpError = getPrismaHttpError(e);
+    if (prismaHttpError) {
+      error(prismaHttpError.status, {
+        message: prismaHttpError.message,
       });
     }
     console.error('Error in POST /api/reits: ', e);
