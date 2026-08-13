@@ -34,6 +34,26 @@ const getButton = (target: HTMLElement, label: string) =>
   ) as HTMLButtonElement;
 
 describe('SortableTable desktop controls', () => {
+  it('renders the search input before the table and pagination after it', () => {
+    const { component, target } = mountTable();
+
+    const searchInput = target.querySelector('input[type="search"]') as HTMLInputElement;
+    const table = target.querySelector('table') as HTMLTableElement;
+    const pagination = target.querySelector(
+      'nav[aria-label="Property table pages"]',
+    ) as HTMLElement;
+
+    expect(
+      searchInput.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      table.compareDocumentPosition(pagination) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    component.$destroy();
+    target.remove();
+  });
+
   it('filters rows from the search input and renders an empty state', async () => {
     const target = document.createElement('div');
     document.body.append(target);
@@ -85,7 +105,7 @@ describe('SortableTable desktop controls', () => {
     getButton(target, 'Next').click();
     await Promise.resolve();
 
-    expect(target.querySelector('tbody')?.textContent).toContain('Property [26]');
+    expect(target.querySelector('tbody')?.textContent).toContain('Property [11]');
     expect(target.querySelector('tbody')?.textContent).not.toContain('Property [01]');
     expect(target.querySelector('[aria-current="page"]')?.textContent).toBe('2');
 
@@ -109,7 +129,7 @@ describe('SortableTable desktop controls', () => {
     pageTwoButton.click();
     await Promise.resolve();
 
-    expect(target.querySelector('tbody')?.textContent).toContain('Property [26]');
+    expect(target.querySelector('tbody')?.textContent).toContain('Property [11]');
     expect(target.querySelector('tbody')?.textContent).not.toContain('Property [01]');
     expect(target.querySelector('[aria-current="page"]')?.textContent).toBe('2');
     expect(target.querySelectorAll('span[aria-hidden="true"]')).toHaveLength(1);
@@ -125,11 +145,11 @@ describe('SortableTable desktop controls', () => {
     await Promise.resolve();
 
     const select = target.querySelector('select') as HTMLSelectElement;
-    select.value = '10';
+    select.value = '25';
     select.dispatchEvent(new Event('change', { bubbles: true }));
     await Promise.resolve();
 
-    expect(target.textContent).toContain('Showing 1–10 of 26 properties');
+    expect(target.textContent).toContain('Showing 1–25 of 26 properties');
     expect(target.querySelector('tbody')?.textContent).toContain('Property [01]');
     expect(target.querySelector('tbody')?.textContent).not.toContain('Property [26]');
     expect(target.querySelector('[aria-current="page"]')?.textContent).toBe('1');
@@ -147,7 +167,7 @@ describe('SortableTable desktop controls', () => {
     await Promise.resolve();
 
     expect(target.querySelector('tbody')?.textContent).toContain('Property [01]');
-    expect(target.querySelector('tbody')?.textContent).not.toContain('Property [26]');
+    expect(target.querySelector('tbody')?.textContent).not.toContain('Property [11]');
     expect(target.querySelector('[aria-current="page"]')?.textContent).toBe('1');
 
     component.$destroy();

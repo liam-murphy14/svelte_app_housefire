@@ -69,11 +69,13 @@ describe('SortableTable', () => {
       },
     });
 
+    expect(body.indexOf('Search properties')).toBeLessThan(body.indexOf('<table'));
+    expect(body.indexOf('Property table pages')).toBeGreaterThan(body.indexOf('</table>'));
     expect(body).toContain('Search properties');
-    expect(body).toContain('Showing 1–25 of 26 properties');
+    expect(body).toContain('Showing 1–10 of 26 properties');
     expect(body).toContain('Property 1');
-    expect(body).toContain('Property 25');
-    expect(body).not.toContain('Property 26');
+    expect(body).toContain('Property 10');
+    expect(body).not.toContain('Property 11');
     expect(body).toContain('aria-current="page"');
     expect(body).toContain('10');
     expect(body).toContain('25');
@@ -111,7 +113,7 @@ describe('SortableTable', () => {
 
     expect(body).toContain('aria-label="Go to page 1"');
     expect(body).toContain('aria-label="Go to page 2"');
-    expect(body).toContain('aria-label="Go to page 9"');
+    expect(body).toContain('aria-label="Go to page 21"');
     expect(body).not.toContain('aria-label="Go to page 3"');
     expect(body).toContain('aria-hidden="true"');
     expect(body).toContain('min-h-10');
