@@ -85,8 +85,14 @@ describe('table data helpers', () => {
       squareFootage: (left: unknown, right: unknown) => Number(left) - Number(right),
     };
 
-    expect(sortTableRows(input, 'squareFootage', 'asc', sortFunctions)).toEqual([input[1], input[0]]);
-    expect(sortTableRows(input, 'squareFootage', 'desc', sortFunctions)).toEqual([input[0], input[1]]);
+    expect(sortTableRows(input, 'squareFootage', 'asc', sortFunctions)).toEqual([
+      input[1],
+      input[0],
+    ]);
+    expect(sortTableRows(input, 'squareFootage', 'desc', sortFunctions)).toEqual([
+      input[0],
+      input[1],
+    ]);
   });
 
   it('calculates page counts and returns the requested page slice', () => {

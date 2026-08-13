@@ -34,6 +34,10 @@
   $: filteredTableData = filterTableRows(tableData, searchQuery);
   $: sortedTableData = sortTableRows(filteredTableData, sortKey, sortDirection, sortFunctions);
   $: pageCount = getPageCount(sortedTableData.length, rowsPerPage);
+  $: resultSummary =
+    filteredTableData.length > 0
+      ? `Showing ${Math.min((currentPage - 1) * rowsPerPage + 1, filteredTableData.length)}–${Math.min(currentPage * rowsPerPage, filteredTableData.length)} of ${filteredTableData.length} properties`
+      : 'Showing 0 of 0 properties';
   $: visibleTableData = enablePagination
     ? getPageRows(sortedTableData, currentPage, rowsPerPage)
     : sortedTableData;
@@ -101,17 +105,14 @@
         </select>
       </label>
       <p class="hf-body-2 text-hf-base-dark" role="status">
-        {#if filteredTableData.length > 0}
-          Showing {Math.min((currentPage - 1) * rowsPerPage + 1, filteredTableData.length)}–{Math.min(
-            currentPage * rowsPerPage,
-            filteredTableData.length,
-          )} of {filteredTableData.length} properties
-        {:else}
-          Showing 0 of 0 properties
-        {/if}
+        {resultSummary}
       </p>
       <nav aria-label="Property table pages" class="flex items-center gap-1">
-        <button type="button" disabled={currentPage === 1} onclick={() => goToPage(currentPage - 1)}>
+        <button
+          type="button"
+          disabled={currentPage === 1}
+          onclick={() => goToPage(currentPage - 1)}
+        >
           Previous
         </button>
         {#each pageNumbers as page (page)}

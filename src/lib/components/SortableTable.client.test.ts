@@ -1,13 +1,12 @@
 // @vitest-environment happy-dom
 // @vitest-environment-options {"customExportConditions":["browser"]}
 
-import { flushSync } from 'svelte';
 import { createClassComponent } from 'svelte/legacy';
 import { describe, expect, it } from 'vitest';
 import SortableTable from './SortableTable.svelte';
 
 describe('SortableTable desktop controls', () => {
-  it('filters rows from the search input and renders an empty state', () => {
+  it('filters rows from the search input and renders an empty state', async () => {
     const target = document.createElement('div');
     document.body.append(target);
     const component = createClassComponent({
@@ -23,12 +22,11 @@ describe('SortableTable desktop controls', () => {
         enablePagination: true,
       },
     } as never);
-    flushSync();
 
     const input = target.querySelector('input[type="search"]') as HTMLInputElement;
     input.value = 'unmatched';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    flushSync();
+    await Promise.resolve();
 
     expect(target.textContent).toContain('No property records match "unmatched".');
 
