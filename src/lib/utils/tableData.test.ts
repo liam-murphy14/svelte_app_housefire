@@ -35,6 +35,40 @@ describe('table data helpers', () => {
     expect(input).toEqual([rows[2], rows[0], rows[1]]);
   });
 
+  it('places nullish values first when natively sorting ascending', () => {
+    const input = [
+      { id: '1', value: 'middle' },
+      { id: '2', value: undefined },
+      { id: '3', value: null },
+      { id: '4', value: 'first' },
+    ];
+
+    const sortedRows = sortTableRows(input, 'value', 'asc');
+
+    expect(sortedRows.slice(0, 2).every(({ value }) => value == null)).toBe(true);
+    expect(sortedRows.slice(2)).toEqual([input[3], input[0]]);
+  });
+
+  it('compares native numeric values numerically', () => {
+    const input = [
+      { id: '1', value: 10 },
+      { id: '2', value: 2 },
+      { id: '3', value: 30 },
+    ];
+
+    expect(sortTableRows(input, 'value', 'asc')).toEqual([input[1], input[0], input[2]]);
+  });
+
+  it('sorts native values in descending order', () => {
+    const input = [
+      { id: '1', value: 'alpha' },
+      { id: '2', value: 'charlie' },
+      { id: '3', value: 'bravo' },
+    ];
+
+    expect(sortTableRows(input, 'value', 'desc')).toEqual([input[1], input[2], input[0]]);
+  });
+
   it('sorts the complete result before taking the page slice', () => {
     const input = [rows[2], rows[0], rows[1]];
     const sortedRows = sortTableRows(input, 'name', 'asc');
@@ -60,6 +94,13 @@ describe('table data helpers', () => {
     expect(getPageCount(rows.length, 0)).toBe(0);
     expect(getPageRows(rows, 2, 2)).toEqual([rows[2]]);
     expect(getPageRows(rows, 3, 2)).toEqual([]);
+  });
+
+  it('returns no rows for invalid page or rows-per-page bounds', () => {
+    expect(getPageRows(rows, 0, 2)).toEqual([]);
+    expect(getPageRows(rows, -1, 2)).toEqual([]);
+    expect(getPageRows(rows, 1, 0)).toEqual([]);
+    expect(getPageRows(rows, 1, -2)).toEqual([]);
   });
 
   it('supports numbered navigation and clamps invalid pages', () => {
