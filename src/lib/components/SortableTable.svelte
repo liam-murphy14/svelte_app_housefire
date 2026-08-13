@@ -95,7 +95,7 @@
           class="rounded-md border border-hf-base-dark/30 bg-hf-base-light px-3 py-2"
           onchange={onRowsPerPageChange}
         >
-          {#each [10, 25, 50, 100] as pageSize}
+          {#each [10, 25, 50, 100] as pageSize (pageSize)}
             <option value={pageSize}>{pageSize}</option>
           {/each}
         </select>
