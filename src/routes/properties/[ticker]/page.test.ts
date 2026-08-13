@@ -62,4 +62,44 @@ describe('ticker property page', () => {
     expect(tableMarkup).toContain('href="/properties/PLD/property-1"');
     expect(tableMarkup).toContain('View Warehouse property details');
   });
+
+  it('renders desktop controls and only the first mobile property batch', () => {
+    const properties = Array.from({ length: 26 }, (_, index) => ({
+      id: `property-${index + 1}`,
+      name: `Property ${index + 1}`,
+      addressInput: `${index + 1} Main Street, Dallas, TX`,
+      city: 'Dallas',
+      state: 'TX',
+      facts: [],
+    }));
+    const { body } = render(Page, {
+      props: {
+        data: {
+          ticker: 'PLD',
+          properties,
+          metaTags: { title: 'PLD Property Data', description: 'Property data' },
+        },
+      } as never,
+    });
+
+    expect(body).toContain('Search properties');
+    expect(body).toContain('Showing 1–25 of 26 properties');
+    expect(body).toContain('Showing 25 of 26 properties.');
+    expect(body).not.toContain('>Property 26</h3>');
+  });
+
+  it('renders the empty paginated table state for an empty property list', () => {
+    const { body } = render(Page, {
+      props: {
+        data: {
+          ticker: 'PLD',
+          properties: [],
+          metaTags: { title: 'PLD Property Data', description: 'Property data' },
+        },
+      } as never,
+    });
+
+    expect(body).toContain('No property records are available.');
+    expect(body).toContain('No property records are available for this ticker yet.');
+  });
 });
