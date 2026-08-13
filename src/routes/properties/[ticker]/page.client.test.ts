@@ -16,14 +16,26 @@ vi.mock('svelte', async (importOriginal) => ({
   },
 }));
 
-import Page from './+page.svelte';
-
 const leafletTestDouble = vi.hoisted(() => {
   const map = {
     setView: vi.fn(),
   };
+  let resolveImport: () => void;
+  let resolveImportStarted: () => void;
+  let importReady: Promise<void>;
+  let importStarted: Promise<void>;
+
+  const resetImport = () => {
+    importReady = new Promise((resolve) => {
+      resolveImport = resolve;
+    });
+    importStarted = new Promise((resolve) => {
+      resolveImportStarted = resolve;
+    });
+  };
 
   map.setView.mockReturnValue(map);
+  resetImport();
 
   return {
     leaflet: {
@@ -34,10 +46,25 @@ const leafletTestDouble = vi.hoisted(() => {
         addTo: vi.fn(() => ({ bindPopup: vi.fn() })),
       })),
     },
+    get importReady() {
+      return importReady;
+    },
+    get importStarted() {
+      return importStarted;
+    },
+    markImportStarted: () => resolveImportStarted(),
+    resetImport,
+    resolveImport: () => resolveImport(),
   };
 });
 
-vi.mock('leaflet', () => ({ default: leafletTestDouble.leaflet }));
+vi.mock('leaflet', async () => {
+  leafletTestDouble.markImportStarted();
+  await leafletTestDouble.importReady;
+  return { default: leafletTestDouble.leaflet };
+});
+
+import Page from './+page.svelte';
 
 const properties = Array.from({ length: 26 }, (_, index) => ({
   id: `property-${index + 1}`,
@@ -49,13 +76,18 @@ const properties = Array.from({ length: 26 }, (_, index) => ({
 }));
 
 const observerCallbacks: IntersectionObserverCallback[] = [];
+const observerInstances: IntersectionObserverStub[] = [];
 
 class IntersectionObserverStub {
+  connected = true;
   observe = vi.fn();
-  disconnect = vi.fn();
+  disconnect = vi.fn(() => {
+    this.connected = false;
+  });
 
   constructor(callback: IntersectionObserverCallback) {
     observerCallbacks.push(callback);
+    observerInstances.push(this);
   }
 }
 
@@ -65,10 +97,41 @@ const settleMap = async () => {
   flushSync();
 };
 
+const mountPage = async () => {
+  const target = document.createElement('div');
+  document.body.append(target);
+  const component = createClassComponent({
+    component: Page,
+    target,
+    props: {
+      data: {
+        ticker: 'PLD',
+        properties,
+        metaTags: { title: 'PLD Property Data', description: 'Property data' },
+      },
+    },
+  } as never);
+  const cleanups = lifecycleTestDouble.onMountCallbacks
+    .map((callback) => callback())
+    .filter((cleanup): cleanup is () => void => typeof cleanup === 'function');
+
+  return {
+    component,
+    destroy: () => {
+      component.$destroy();
+      cleanups.forEach((cleanup) => cleanup());
+      target.remove();
+    },
+    target,
+  };
+};
+
 describe('ticker property page mobile loading', () => {
   beforeEach(() => {
     leafletTestDouble.leaflet.marker.mockClear();
+    leafletTestDouble.resetImport();
     observerCallbacks.splice(0);
+    observerInstances.splice(0);
     lifecycleTestDouble.onMountCallbacks.splice(0);
     vi.stubGlobal('IntersectionObserver', IntersectionObserverStub);
   });
@@ -77,27 +140,39 @@ describe('ticker property page mobile loading', () => {
     vi.unstubAllGlobals();
   });
 
-  it('loads the next mobile property batch while keeping markers for all properties', async () => {
-    const target = document.createElement('div');
-    document.body.append(target);
-    const component = createClassComponent({
-      component: Page,
-      target,
-      props: {
-        data: {
-          ticker: 'PLD',
-          properties,
-          metaTags: { title: 'PLD Property Data', description: 'Property data' },
-        },
-      },
-    } as never);
+  it('does not leave a mobile observer connected when destroyed before Leaflet loads', async () => {
+    const page = await mountPage();
+    await leafletTestDouble.importStarted;
 
-    lifecycleTestDouble.onMountCallbacks.forEach((callback) => callback());
+    page.destroy();
+    leafletTestDouble.resolveImport();
+    await settleMap();
+
+    expect(observerInstances.filter((observer) => observer.connected)).toHaveLength(0);
+  });
+
+  it('disconnects the mobile observer when the component is destroyed', async () => {
+    leafletTestDouble.resolveImport();
+    const page = await mountPage();
+    await settleMap();
+
+    expect(observerInstances).toHaveLength(1);
+    expect(observerInstances[0].connected).toBe(true);
+
+    page.destroy();
+
+    expect(observerInstances[0].disconnect).toHaveBeenCalledOnce();
+    expect(observerInstances[0].connected).toBe(false);
+  });
+
+  it('loads the next mobile property batch while keeping markers for all properties', async () => {
+    leafletTestDouble.resolveImport();
+    const page = await mountPage();
     await settleMap();
 
     expect(leafletTestDouble.leaflet.marker).toHaveBeenCalledTimes(26);
-    expect(target.textContent).toContain('Property 25');
-    expect(target.textContent).not.toContain('Property 26');
+    expect(page.target.textContent).toContain('Property 25');
+    expect(page.target.textContent).not.toContain('Property 26');
 
     observerCallbacks[0](
       [{ isIntersecting: true } as IntersectionObserverEntry],
@@ -106,9 +181,8 @@ describe('ticker property page mobile loading', () => {
     flushSync();
     await Promise.resolve();
 
-    expect(target.textContent).toContain('Property 26');
+    expect(page.target.textContent).toContain('Property 26');
 
-    component.$destroy();
-    target.remove();
+    page.destroy();
   });
 });

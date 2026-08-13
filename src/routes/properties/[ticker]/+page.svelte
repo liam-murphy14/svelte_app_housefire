@@ -64,10 +64,14 @@
   };
 
   onMount(() => {
+    let alive = true;
+
     const initializePage = async () => {
       try {
         // import leaflet onMount since it is client only
         const l = await import('leaflet');
+        if (!alive) return;
+
         leaflet = l.default;
         leaflet.Icon.Default.imagePath = '/leaflet/';
 
@@ -91,6 +95,8 @@
         console.error(e);
       }
 
+      if (!alive) return;
+
       mobileLoadObserver = new IntersectionObserver((entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
           loadMoreMobileProperties();
@@ -105,6 +111,7 @@
     void initializePage();
 
     return () => {
+      alive = false;
       mobileLoadObserver?.disconnect();
     };
   });
