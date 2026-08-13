@@ -22,11 +22,13 @@
 ### Task 1: Split the table controls into a search toolbar and sticky footer
 
 **Files:**
+
 - Modify: `src/lib/components/SortableTable.svelte`
 - Modify: `src/lib/components/SortableTable.test.ts`
 - Modify: `src/lib/components/SortableTable.client.test.ts`
 
 **Interfaces:**
+
 - Consumes: the existing `SortableTable` props, table-data helpers, and current pagination behavior.
 - Produces: the same `SortableTable` public props and callbacks, with the default page size changed to 10 and the controls rendered in their new positions.
 

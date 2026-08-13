@@ -83,7 +83,7 @@ describe('ticker property page', () => {
     });
 
     expect(body).toContain('Search properties');
-    expect(body).toContain('Showing 1–25 of 26 properties');
+    expect(body).toContain('Showing 1–10 of 26 properties');
     expect(body).toContain('Showing 25 of 26 properties.');
     expect(body).not.toContain('>Property 26</h3>');
   });
