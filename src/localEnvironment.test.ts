@@ -36,7 +36,7 @@ describe('local environment command selection', () => {
     const script = scripts['db:seed:beta'] ?? '';
 
     expect(script).toMatch(
-      /^unset DB_URL_DIRECT && DOTENV_CONFIG_PATH=\.env vite-node \.\/src\/lib\/server\/db\/seedBetaTestData\.ts$/,
+      /^unset DB_URL_DIRECT && node --experimental-strip-types --env-file=\.env \.\/src\/lib\/server\/db\/seedBetaTestData\.ts$/,
     );
   });
 });

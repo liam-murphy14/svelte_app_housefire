@@ -7,7 +7,7 @@
     "build": "vite build --mode beta",
     "db:migrate:beta": "unset DB_URL_DIRECT && DOTENV_CONFIG_PATH=.env prisma migrate deploy",
     "db:migrate:prod": "unset DB_URL_DIRECT && DOTENV_CONFIG_PATH=.env.production prisma migrate deploy",
-    "db:seed:beta": "unset DB_URL_DIRECT && DOTENV_CONFIG_PATH=.env vite-node ./src/lib/server/db/seedBetaTestData.ts",
+    "db:seed:beta": "unset DB_URL_DIRECT && node --experimental-strip-types --env-file=.env ./src/lib/server/db/seedBetaTestData.ts",
     "preview": "vite preview --mode beta",
     "test": "npm run test:integration && npm run test:unit",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
