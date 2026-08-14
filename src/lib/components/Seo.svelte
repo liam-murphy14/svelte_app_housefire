@@ -6,7 +6,7 @@
 
   const siteTitle = 'Housefire';
 
-  const pageTitle = `${siteTitle} ${VERTICAL_LINE_ENTITY} ${title}`;
+  $: pageTitle = `${siteTitle} ${VERTICAL_LINE_ENTITY} ${title}`;
 </script>
 
 <svelte:head>

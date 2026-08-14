@@ -27,9 +27,10 @@ test('index page explains Housefire and exposes the catalog entry point', async 
 
 test('all public data pages render seeded beta data', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'HFTEST', exact: true })).toBeVisible();
+  const tickerLink = page.getByRole('link', { name: 'HFTEST View properties', exact: true });
+  await expect(tickerLink).toBeVisible();
 
-  await page.getByRole('link', { name: 'HFTEST', exact: true }).click();
+  await tickerLink.click();
   await expect(page).toHaveURL(/\/properties\/HFTEST$/);
   await expect(page).toHaveTitle('Housefire | HFTEST Property Data');
   await expect(page.getByRole('heading', { name: 'HFTEST Properties' })).toBeVisible();
@@ -37,15 +38,19 @@ test('all public data pages render seeded beta data', async ({ page }) => {
   await expect(
     page.getByRole('link', { name: 'View North Harbor Logistics property details' }),
   ).toBeVisible();
-  await expect(page.getByText('Front Range Distribution Center', { exact: true })).toBeVisible();
-  await expect(page.getByText('Peachtree Industrial Campus', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'View Front Range Distribution Center property details' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'View Peachtree Industrial Campus property details' }),
+  ).toBeVisible();
 
   await page.getByRole('link', { name: 'View North Harbor Logistics property details' }).click();
   await expect(page).toHaveURL(/\/properties\/HFTEST\/[^/]+$/);
   await expect(page).toHaveTitle('Housefire | HFTEST | North Harbor Logistics Property Details');
   await expect(page.getByRole('heading', { name: 'North Harbor Logistics' })).toBeVisible();
   await expect(
-    page.getByText('101 Harbor Way, Seattle, WA 98101, USA', { exact: true }),
+    page.getByRole('banner').getByText('101 Harbor Way, Seattle, WA 98101, USA', { exact: true }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Property location' })).toBeVisible();
   await expect(page.locator('#property-map')).toHaveClass(/leaflet-container/);

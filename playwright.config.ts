@@ -1,5 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 
+delete process.env.NO_COLOR;
+
 const chromeExecutablePath =
   process.env.PLAYWRIGHT_CHROME_PATH ??
   (process.platform === 'darwin'
