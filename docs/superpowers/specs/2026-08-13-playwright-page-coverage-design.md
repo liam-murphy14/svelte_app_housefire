@@ -25,4 +25,3 @@ The baseline integration run passes but Node 24 emits repeated unmanaged-file-de
 - The suite asserts meaningful seeded content rather than only route status codes.
 - The repeated `File descriptor ... unmanaged mode` lines and the `NO_COLOR` warning do not appear in Playwright web-server output.
 - Existing static checks, unit tests, and the integration suite remain passing.
-
