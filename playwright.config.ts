@@ -8,8 +8,12 @@ const chromeExecutablePath =
 
 const config: PlaywrightTestConfig = {
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: 'npm run db:seed:beta && npm run build && npm run preview',
     port: 4173,
+    env: {
+      NODE_NO_WARNINGS: '1',
+      FORCE_COLOR: '0',
+    },
   },
   use: chromeExecutablePath
     ? { launchOptions: { executablePath: chromeExecutablePath } }
